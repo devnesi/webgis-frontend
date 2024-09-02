@@ -53,9 +53,19 @@ export class ApiAdapter {
     return result.data
   }
 
-  public async getLayerForm(layer_id: number) {
-    const result = await this._client.get<API.LAYER.listForms>(`/geom/${layer_id}/values/`)
+  public async getGeometryFormAndValues(geometry_id: number) {
+    const result = await this._client.get<API.GEOMETRY.listForms>(`/geometries/${geometry_id}/values/`)
 
     return result.data
+  }
+
+  public async updateForm(geometryID: number, formData: API.RAW.BatchFormValues) {
+    try {
+      const result = await this._client.post(`/geometries/${geometryID}/infos/`, formData)
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
   }
 }

@@ -1,8 +1,8 @@
 export default function LoginPage() {
   return (
-    <div className="bg-primary text-white flex min-h-screen flex-col items-center pt-16 sm:justify-center sm:pt-0">
+    <div className="flex flex-col sm:justify-center items-center bg-primary pt-16 sm:pt-0 min-h-screen text-white">
       <a href="#">
-        <div className="text-foreground font-semibold text-2xl tracking-tighter mx-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 mx-auto font-semibold text-2xl text-foreground tracking-tighter">
           <div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -21,50 +21,37 @@ export default function LoginPage() {
           Map Sync
         </div>
       </a>
-      <div className="relative mt-12 w-full max-w-lg sm:mt-10">
-        <div className="relative -mb-px h-px w-full bg-gradient-to-r from-transparent via-violet-600 to-transparent"></div>
-        <div className="mx-5 border dark:border-b-white/20 dark:border-t-white/20 border-b-white/20 sm:border-t-white/20 shadow-[20px_0_20px_20px] shadow-slate-500/10 dark:shadow-white/20 rounded-md border-white/20 border-l-white/20 border-r-white/20 sm:shadow-sm lg:shadow-none bg-secondary">
+      <div className="relative mt-12 sm:mt-10 w-full max-w-lg">
+        <div className="relative bg-gradient-to-r from-transparent via-accent to-transparent -mb-px w-full h-px"></div>
+        <div className="border-white/20 bg-secondary shadow-[20px_0_20px_20px] shadow-slate-500/10 sm:shadow-sm lg:shadow-none dark:shadow-white/20 mx-5 border sm:border-t-white/20 dark:border-t-white/20 border-r-white/20 border-b-white/20 dark:border-b-white/20 border-l-white/20 rounded-md">
           <div className="flex flex-col p-6">
-            <h3 className="text-xl font-semibold leading-6 tracking-tighter">Login</h3>
-            <p className="mt-1.5 text-sm font-medium text-white/50">Bem vindo, digite suas credenciais para começar.</p>
+            <h3 className="font-semibold text-xl leading-6 tracking-tighter">Login</h3>
+            <p className="mt-1.5 font-medium text-sm text-white/50">Bem vindo, digite suas credenciais para começar.</p>
           </div>
           <div className="p-6 pt-0">
             <form>
               <div>
                 <div>
-                  <div className="group relative rounded-md border focus-within:border-violet-600 border-white/20 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-violet-300/30">
+                  <div className="relative border-white/20 focus-within:border-accent px-3 pt-2.5 pb-1.5 border rounded-md focus-within:ring focus-within:ring-accent/30 duration-200 group">
                     <div className="flex justify-between">
-                      <label className="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+                      <label className="group-focus-within:text-white font-medium text-gray-400 text-muted-foreground text-xs">
                         Usuário
                       </label>
-                      {/* <div className="absolute right-3 translate-y-2 text-violet-200">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          className="w-6 h-6">
-                          <path
-                            fill-rule="evenodd"
-                            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      </div> */}
                     </div>
                     <input
                       type="text"
                       name="username"
                       placeholder="Fulano"
-                      className="block w-full border-0 border-white/10 bg-transparent p-0 text-sm file:my-1 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:font-medium placeholder:text-white/90 focus:outline-none focus:ring-0 sm:leading-7"
+                      className="block border-0 border-white/10 file:border-0 bg-transparent file:bg-accent file:my-1 file:px-4 file:py-2 p-0 file:rounded-full focus:ring-0 w-full file:font-medium text-sm placeholder:text-white/90 focus:outline-none sm:leading-7"
                     />
                   </div>
                 </div>
               </div>
               <div className="mt-4">
                 <div>
-                  <div className="group relative rounded-md border focus-within:border-violet-600 border-white/20 px-3 pb-1.5 pt-2.5 duration-200 focus-within:ring focus-within:ring-violet-300/30">
+                  <div className="relative border-white/20 focus-within:border-accent px-3 pt-2.5 pb-1.5 border rounded-md focus-within:ring focus-within:ring-accent/30 duration-200 group">
                     <div className="flex justify-between">
-                      <label className="text-xs font-medium text-muted-foreground group-focus-within:text-white text-gray-400">
+                      <label className="group-focus-within:text-white font-medium text-gray-400 text-muted-foreground text-xs">
                         Senha
                       </label>
                     </div>
@@ -72,20 +59,20 @@ export default function LoginPage() {
                       <input
                         type="password"
                         name="password"
-                        className="block w-full border-0 border-white/10 bg-transparent p-0 text-sm file:my-1 placeholder:text-muted-foreground/90 focus:outline-none focus:ring-0 focus:ring-teal-500 sm:leading-7 text-foreground"
+                        className="block border-0 border-white/10 bg-transparent file:my-1 p-0 focus:ring-0 focus:ring-teal-500 w-full text-foreground text-sm placeholder:text-muted-foreground/90 focus:outline-none sm:leading-7"
                       />
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 flex items-center justify-end gap-x-2">
+              <div className="flex justify-end items-center gap-x-2 mt-4">
                 <a
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:ring hover:ring-white h-10 px-4 py-2 duration-200"
-                  href="/register">
+                  className="inline-flex justify-center items-center hover:bg-accent disabled:opacity-50 px-4 py-2 rounded-md hover:ring hover:ring-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 font-medium text-sm transition-all focus-visible:outline-none duration-200 disabled:pointer-events-none"
+                  href="/auth/register">
                   Registro
                 </a>
                 <button
-                  className="font-semibold hover:bg-black hover:text-white hover:ring hover:ring-white transition duration-300 inline-flex items-center justify-center rounded-md text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white text-black h-10 px-4 py-2"
+                  className="inline-flex justify-center items-center bg-white hover:bg-black disabled:opacity-50 px-4 py-2 rounded-md hover:ring hover:ring-white focus-visible:ring-2 focus-visible:ring-offset-2 h-10 font-semibold text-black text-sm hover:text-white transition duration-300 focus-visible:outline-none disabled:pointer-events-none"
                   type="submit">
                   Login
                 </button>

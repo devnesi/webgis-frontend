@@ -13,12 +13,11 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
   const parser = useMemo(() => new MVT(), [])
   const adapter = useMemo(() => new ApiAdapter(), [])
   // const [flow, setFlow] = useState([])
-  const { setActiveGeometryID, activeGeometryID, setActiveGeometry, activeGeometry } = useInterfaceStore()
+  const { setActiveGeometryID, activeGeometryID, setActiveGeometry, activeGeometry, editorTool, setActiveLayer } =
+    useInterfaceStore()
   // const [temporaryGeometry, setTemporaryGeometry] = useState<API.GEOMETRY.detail | null>()
 
   const GeometryJsonObject = useMemo(() => {
-    console.log('active geometry', activeGeometry)
-
     if (!activeGeometry) {
       return null
     }
@@ -67,33 +66,32 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
                 // @ts-expect-error - Same attributes, different types
                 format={parser}
                 onClick={(e) => {
+                  if (editorTool !== undefined) return
                   const geometryID = e.target.get('id_geometry')
+                  const geometryLayerID = e.target.get('id_layer')
+                  geometryLayerID && setActiveLayer(geometryLayerID)
                   return geometryID && setActiveGeometryID(geometryID === activeGeometryID ? undefined : geometryID)
                 }}>
-                <RStyle>
-                  <RCircle radius={layer?.style?.radius || 5}>
-                    <RFill color={layer?.style?.fill || '#007bff'} />
-                  </RCircle>
-                  <RStroke color={layer?.style?.stroke || '#007bff'} width={2} />
-                  <RFill color={layer?.style?.fill || '#007bff4D'} />
-                </RStyle>
+                {editorTool ? (
+                  <RStyle>
+                    <RCircle radius={3}>
+                      <RFill color={'#007bff33'} />
+                    </RCircle>
+                    <RStroke color={'#007bff33'} width={2} />
+                    <RFill color={'#007bff33'} />
+                  </RStyle>
+                ) : (
+                  <RStyle>
+                    <RCircle radius={layer?.style?.radius || 5}>
+                      <RFill color={layer?.style?.fill || '#007bff'} />
+                    </RCircle>
+                    <RStroke color={layer?.style?.stroke || '#007bff'} width={2} />
+                    <RFill color={layer?.style?.fill || '#007bff4D'} />
+                  </RStyle>
+                )}
               </RLayerVectorTile>
             )
         )}
-
-      {activeGeometry?.geom && (
-        <RLayerVector
-          // @ts-expect-error - Same attributes, different types
-          features={GeometryJsonObject}>
-          <RStyle>
-            <RCircle radius={5}>
-              <RFill color="#ff0000" />
-            </RCircle>
-            <RStroke color="#ff0000" width={2} />
-            <RFill color="#ff00007D" />
-          </RStyle>
-        </RLayerVector>
-      )}
     </>
   )
 }

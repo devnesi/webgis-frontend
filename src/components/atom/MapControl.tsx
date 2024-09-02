@@ -9,32 +9,34 @@ export interface IMapControl {
   onClick?: () => void
   label?: string
   active?: boolean
+  disabled?: boolean
 }
 
-export default function MapControl({ Icon, onClick, label, active }: IMapControl) {
+export default function MapControl({ Icon, onClick, label, active, disabled }: IMapControl) {
   return (
     <Tooltip.Provider delayDuration={300}>
       <Tooltip.Root>
-        <Tooltip.Trigger asChild>
+        <Tooltip.Trigger asChild disabled={disabled}>
           <div
             className={clsx(
-              'p-2 rounded-md border border-zinc-800 cursor-pointer hover:bg-violet-800 hover:border-violet-900 duration-300',
+              'border-zinc-800 hover:border-accent hover:bg-accent/60 p-2 border rounded-md duration-300 cursor-pointer',
               {
-                'bg-violet-500 border-violet-900': active,
-                'bg-zinc-900': !active,
+                'bg-accent/80 border-accent text-primary': active,
+                'bg-primary': !active,
+                '!bg-secondary !text-white/40': disabled,
               }
             )}
-            onClick={onClick}>
-            <Icon weight="duotone" size={16} />
+            onClick={!disabled ? onClick : undefined}>
+            <Icon weight="duotone" size={24} />
           </div>
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Content
             side="left"
-            className="bg-zinc-900 rounded-md p-2 text-center text-xs select-none"
+            className="bg-primary p-2 rounded-md text-center text-xs select-none"
             sideOffset={8}>
             {label || 'Label'}
-            <Tooltip.Arrow className="border-zinc-900" />
+            <Tooltip.Arrow className="border-primary" />
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>

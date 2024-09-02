@@ -27,7 +27,7 @@ export default function MapControls() {
   const adapter = useMemo(() => new ApiAdapter(), [])
 
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex flex-col gap-2 p-4 pointer-events-auto">
       <MapControl
         Icon={MagnifyingGlassPlus}
         onClick={() => {

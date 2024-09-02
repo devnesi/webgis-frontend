@@ -14,14 +14,15 @@ import { useState } from 'react'
 
 export default function LayersPanel() {
   const { maps, setMaps } = useMapStore()
-  const { activeMap, setActiveMap, setActiveLayer, activeLayer } = useInterfaceStore()
+  const { activeMap, setActiveMap, setActiveLayer, activeLayer, setEditorTool, setActiveGeometryID } =
+    useInterfaceStore()
   const [isMapListOpen, setMapListOpen] = useState<boolean>(false)
   const { map } = useOL()
   const mapLayers = maps[activeMap || 0]?.layers
 
   return (
     <motion.div
-      className="w-full h-full bg-[#161616] flex flex-col z-[51] relative"
+      className="relative z-[51] flex flex-col bg-[#161616] w-full h-full pointer-events-auto"
       key="layers-panel"
       transition={{
         duration: 0.2,
@@ -44,7 +45,7 @@ export default function LayersPanel() {
       }}>
       <DropdownMenu.Root open={isMapListOpen} onOpenChange={setMapListOpen}>
         <DropdownMenu.Trigger asChild>
-          <div className="flex justify-between items-center w-full border-b border-tertiary bg-secondary p-4 text-sm cursor-pointer select-none">
+          <div className="flex justify-between items-center bg-secondary p-4 border-tertiary border-b w-full text-sm cursor-pointer select-none">
             <span className="flex items-center gap-2">
               <GlobeHemisphereWest weight="duotone" /> {maps[activeMap || 0]?.name || 'Selecione um mapa'}
             </span>
@@ -55,7 +56,7 @@ export default function LayersPanel() {
         <DropdownMenu.Portal>
           <AnimatePresence>
             {isMapListOpen && (
-              <DropdownMenu.Content className="w-full z-[52] min-w-[300px] shadow-2xl" sideOffset={0}>
+              <DropdownMenu.Content className="z-[52] shadow-2xl w-full min-w-[300px]" sideOffset={0}>
                 <motion.div
                   className="w-full h-full"
                   initial={{
@@ -74,7 +75,7 @@ export default function LayersPanel() {
                   {Object.values(maps).map((map) => {
                     return (
                       <DropdownMenu.Item
-                        className="px-4 cursor-pointer select-none py-2 border border-tertiary text-sm hover:bg-violet-600 duration-200 hover:text-primary focus:outline-none first:rounded-t last:rounded-b bg-secondary"
+                        className="bg-secondary hover:bg-accent px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-sm hover:text-primary duration-200 cursor-pointer select-none focus:outline-none"
                         key={`map.select.${map.id_map}`}
                         onClick={() => {
                           setActiveMap(map.id_map)
@@ -98,12 +99,12 @@ export default function LayersPanel() {
           .map((layer) => {
             return (
               <div
-                className={clsx('flex border-b border-tertiary rounded items-center w-full h-12', {
-                  'bg-violet-600/5': layer.id_layer === activeLayer,
+                className={clsx('flex items-center border-tertiary border-b rounded w-full h-12', {
+                  'bg-accent/5': layer.id_layer === activeLayer,
                 })}
                 key={`layer.${layer.id_layer}.map.${activeMap}`}>
                 <div
-                  className="flex items-center justify-center h-full aspect-square bg-secondary p-2 cursor-pointer hover:bg-tertiary duration-200"
+                  className="flex justify-center items-center bg-secondary hover:bg-tertiary p-2 h-full duration-200 cursor-pointer aspect-square"
                   onClick={() => {
                     setMaps({
                       ...maps,
@@ -125,15 +126,17 @@ export default function LayersPanel() {
                 </div>
                 <div
                   className={clsx(
-                    'px-2 text-xs w-full overflow-hidden text-ellipsis h-full flex items-center gap-2 cursor-pointer hover:bg-tertiary duration-200',
+                    'flex items-center gap-2 hover:bg-tertiary px-2 w-full h-full text-ellipsis text-xs duration-200 cursor-pointer overflow-hidden',
                     {
-                      'text-violet-400': layer.id_layer === activeLayer,
+                      'text-accent': layer.id_layer === activeLayer,
                     }
                   )}
                   onClick={() => {
+                    setEditorTool(undefined)
                     setActiveLayer(activeLayer === layer.id_layer ? undefined : layer.id_layer)
+                    setActiveGeometryID(undefined)
                   }}>
-                  <div className="w-4 h-full flex items-center justify-center">
+                  <div className="flex justify-center items-center w-4 h-full">
                     <span
                       style={{
                         border: `solid 2px ${layer?.style?.stroke || '#007bff'}`,
@@ -146,10 +149,10 @@ export default function LayersPanel() {
                       })}
                     />
                   </div>
-                  <span className=" whitespace-nowrap overflow-hidden text-ellipsis w-full">{layer.name}</span>
+                  <span className="w-full text-ellipsis whitespace-nowrap overflow-hidden">{layer.name}</span>
                 </div>
                 <div
-                  className="flex items-center justify-center h-full aspect-square hover:bg-tertiary duration-200 cursor-pointer"
+                  className="flex justify-center items-center hover:bg-tertiary h-full duration-200 cursor-pointer aspect-square"
                   onClick={() => {
                     const adapter = new ApiAdapter()
                     adapter.getLayerBBox(layer.id_layer).then((response) => {

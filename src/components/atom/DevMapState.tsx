@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import { useMapStore } from '@/core/store/mapStore'
 import { useOlStore } from '@/core/store/olStore'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
+import { useMemo } from 'react'
 
 export interface IDevMapState {
   extraData?: { [key: string]: string | number }
@@ -12,18 +13,25 @@ export interface IDevMapState {
 
 export default function DevMapState({ extraData }: IDevMapState) {
   const view = useOlStore((state) => state.view)
-  const { activeLayer, activeMap, activePanel, activeGeometryID, activeGeometry, bBoxLock } = useInterfaceStore()
+  const { activeLayer, activeMap, activePanel, activeGeometryID, activeGeometry, bBoxLock, editorTool } =
+    useInterfaceStore()
   const maps = useMapStore((state) => state.maps)
+  const layerType = useMemo(() => {
+    if (!activeLayer) return 'N/a'
+    const layer = maps[activeMap || 0]?.layers.find((l) => l.id_layer === activeLayer)
+    if (!layer) return 'N/a'
+    return layer.layer_type
+  }, [activeLayer, activeMap, maps])
 
   return (
     <div
       className={clsx(
-        'absolute bottom-4 left-1/2 rounded-md bg-zinc-900 border border-zinc-800 text-white -translate-x-1/2 overflow-hidden text-xs',
+        'bottom-4 left-1/2 absolute border-zinc-800 bg-zinc-900 border rounded-md text-white text-xs -translate-x-1/2 overflow-hidden',
         {
           hidden: process.env.NODE_ENV !== 'development',
         }
       )}>
-      <div className="w-full h-full backdrop-blur-sm p-4">
+      <div className="backdrop-blur-sm p-4 w-full h-full">
         <div>
           Center:
           <strong className="mx-1">
@@ -69,12 +77,20 @@ export default function DevMapState({ extraData }: IDevMapState) {
           <strong className="mx-1">{activeLayer || 'N/a'}</strong>
         </div>
         <div>
+          active layer type:
+          <strong className="mx-1">{activeLayer ? layerType : 'N/a'}</strong>
+        </div>
+        <div>
           active geometry:
           <strong className="mx-1">{activeGeometryID || 'N/a'}</strong>
         </div>
         <div>
           Locked bBox?
           <strong className="mx-1">{bBoxLock || 'No'}</strong>
+        </div>
+        <div>
+          Active drawing tool
+          <strong className="mx-1">{editorTool || 'No'}</strong>
         </div>
         {extraData &&
           Object.keys(extraData).map((k, i) => {

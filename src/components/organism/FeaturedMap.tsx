@@ -7,6 +7,7 @@ import MapManager from './MapManager'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useMapStore } from '@/core/store/mapStore'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
+import LayerEditor from '../molecule/LayerEditor'
 
 export default function FeaturedMap({ children }: { children?: React.ReactNode | React.ReactNode[] }) {
   const { maps, setMaps } = useMapStore()
@@ -43,6 +44,7 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
       <BaseMap>
         <MapLayers map={maps[activeMap || 0]} />
         <MapManager />
+        <LayerEditor />
       </BaseMap>
       {children}
     </>

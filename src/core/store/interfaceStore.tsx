@@ -15,6 +15,7 @@ export interface InterfaceStore {
   activeGeometryID?: number
   activeGeometry?: API.GEOMETRY.detail
   bBoxLock?: number[]
+  editorTool?: 'Lasso' | 'Pen' | 'Circle' | 'Line' | 'Point' | 'Selection'
 }
 
 export interface InterfaceAction {
@@ -24,6 +25,7 @@ export interface InterfaceAction {
   setActiveGeometryID: (geometry?: number) => void
   setActiveGeometry: (geometry?: API.GEOMETRY.detail) => void
   setBBoxLock: (lock?: number[]) => void
+  setEditorTool: (tool?: InterfaceStore['editorTool']) => void
 }
 
 export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) => ({
@@ -39,4 +41,6 @@ export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) 
   activeGeometry: undefined,
   setActiveGeometry: (geometry?: API.GEOMETRY.detail) => set({ activeGeometry: geometry }),
   setBBoxLock: (lock?: number[]) => set({ bBoxLock: lock }),
+  editorTool: undefined,
+  setEditorTool: (tool?: InterfaceStore['editorTool']) => set({ editorTool: tool }),
 }))

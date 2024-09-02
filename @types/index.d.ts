@@ -44,23 +44,30 @@ namespace API {
 
     type BBox = string
 
-    type formField = {
+    type FormField = {
       id_field: number
       name: string
+      type: 'String' | 'Number'
       value_string?: string
-      value_number?: number | string
     }
 
-    type form = {
+    type BatchFormValues = {
+      forms: {
+        id_form: number
+        name: string
+        fields_values: FormField[]
+      }[]
+    }
+
+    type Form = {
       id_form: number
       name: string
-      fields: API.RAW.formField[]
+      fields_values: API.RAW.FormField[]
     }
   }
 
   export namespace LAYER {
     type list = API.RAW.Layer[]
-    type listForms = { forms: API.RAW.form[] }
   }
 
   export namespace MAP {
@@ -82,5 +89,7 @@ namespace API {
     type getBBox = {
       bbox: API.RAW.BBox
     }
+
+    type listForms = API.RAW.BatchFormValues
   }
 }
