@@ -9,9 +9,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LineString, Polygon } from 'ol/geom'
 import { debounce } from '@/core/utils/debounce'
+import clsx from 'clsx'
 
 export default function GeometryPanel() {
-  const { activeGeometryID, activeGeometry, setActiveLayer, setActiveGeometryID, activeLayer } = useInterfaceStore()
+  const { activeGeometryID, activeGeometry, setActivePanel, activeLayer } = useInterfaceStore()
   const [isFormListOpen, setFormListOpen] = useState<boolean>(false)
   const [activeForm, setActiveForm] = useState<API.RAW.Form | null>(null)
   const [forms, setForms] = useState<API.GEOMETRY.listForms | null>(null)
@@ -62,9 +63,7 @@ export default function GeometryPanel() {
   const formUpdateDebounces = useMemo(
     () =>
       debounce((form: API.RAW.Form) => {
-        console.log('Debouncing on that dick', form, activeGeometryID)
         if (!form || !activeGeometryID) return
-        console.log('We bowlling')
         adapter.updateForm(activeGeometryID, {
           forms: [
             {
@@ -92,7 +91,7 @@ export default function GeometryPanel() {
 
   return (
     <motion.div
-      className="flex flex-col border-white/10 bg-secondary border-l w-full pointer-events-auto"
+      className="relative z-[51] flex flex-col bg-[#161616] w-full h-full pointer-events-auto select-none"
       key="geometry-panel"
       transition={{
         duration: 0.2,
@@ -121,12 +120,10 @@ export default function GeometryPanel() {
         <X
           className="hover:text-red-400 duration-200 cursor-pointer"
           onClick={() => {
-            if (!activeGeometryID && activeLayer) {
-              setActiveLayer(undefined)
-            }
-            if (activeGeometryID) {
-              setActiveGeometryID(undefined)
-            }
+            // if (!activeGeometryID && activeLayer) {
+            //   setActiveLayer(undefined)
+            // }
+            setActivePanel(undefined)
           }}
         />
       </div>

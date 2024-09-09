@@ -4,7 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
 import { useMapStore } from '@/core/store/mapStore'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { ArrowsDownUp, CrosshairSimple, Eye, EyeSlash, GlobeHemisphereWest, MapTrifold } from '@phosphor-icons/react'
+import { ArrowsDownUp, ArrowsInCardinal, Eye, EyeSlash, GlobeHemisphereWest, MapTrifold } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import clsx from 'clsx'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
@@ -22,10 +22,11 @@ export default function LayersPanel() {
 
   return (
     <motion.div
-      className="relative z-[51] flex flex-col bg-[#161616] w-full h-full pointer-events-auto"
+      className="relative z-[51] flex flex-col bg-[#161616] w-full h-full pointer-events-auto select-none"
       key="layers-panel"
       transition={{
         duration: 0.2,
+        delay: 0.15,
         bounce: false,
       }}
       initial={{
@@ -164,7 +165,7 @@ export default function LayersPanel() {
                       map?.getView().fit(extent, { duration: 1000 })
                     })
                   }}>
-                  <CrosshairSimple size={24} />
+                  <ArrowsInCardinal size={24} />
                 </div>
               </div>
             )

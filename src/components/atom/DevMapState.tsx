@@ -5,7 +5,11 @@ import clsx from 'clsx'
 import { useMapStore } from '@/core/store/mapStore'
 import { useOlStore } from '@/core/store/olStore'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { ArrowDown, ArrowsClockwise, ArrowUp } from '@phosphor-icons/react'
+import { useOL } from 'rlayers'
+import VectorLayer from 'ol/layer/Vector'
+import VectorTileLayer from 'ol/layer/VectorTile'
 
 export interface IDevMapState {
   extraData?: { [key: string]: string | number }
@@ -22,16 +26,38 @@ export default function DevMapState({ extraData }: IDevMapState) {
     if (!layer) return 'N/a'
     return layer.layer_type
   }, [activeLayer, activeMap, maps])
+  const [compactMode, setCompactMode] = useState(true)
+  const { map } = useOL()
 
-  return (
+  return compactMode ? (
     <div
       className={clsx(
-        'bottom-4 left-1/2 absolute border-zinc-800 bg-zinc-900 border rounded-md text-white text-xs -translate-x-1/2 overflow-hidden',
+        'bottom-4 left-1/2 absolute flex justify-center items-center border-zinc-800 bg-zinc-900 py-2 border rounded-md min-w-[150px] h-4 text-center text-white text-xs -translate-x-1/2 cursor-pointer overflow-hidden pointer-events-auto',
+        {
+          hidden: process.env.NODE_ENV !== 'development',
+        }
+      )}
+      onClick={() => {
+        setCompactMode(false)
+      }}>
+      <ArrowUp />
+    </div>
+  ) : (
+    <div
+      className={clsx(
+        'bottom-4 left-1/2 absolute border-zinc-800 bg-black border rounded-md text-white text-xs -translate-x-1/2 overflow-hidden pointer-events-none',
         {
           hidden: process.env.NODE_ENV !== 'development',
         }
       )}>
       <div className="backdrop-blur-sm p-4 w-full h-full">
+        <div
+          className="flex justify-center items-center bg-secondary mb-4 py-2 rounded-lg w-full cursor-pointer pointer-events-auto"
+          onClick={() => {
+            setCompactMode(true)
+          }}>
+          <ArrowDown />
+        </div>
         <div>
           Center:
           <strong className="mx-1">
@@ -101,6 +127,17 @@ export default function DevMapState({ extraData }: IDevMapState) {
               </div>
             )
           })}
+        <div
+          className="flex justify-center items-center bg-secondary mt-4 py-2 rounded-lg w-full cursor-pointer pointer-events-auto"
+          onClick={() => {
+            map.getAllLayers().forEach((l) => {
+              // if (l instanceof VectorTileLayer) {
+              l.getSource()?.refresh()
+              // }
+            })
+          }}>
+          <ArrowsClockwise />
+        </div>
       </div>
     </div>
   )

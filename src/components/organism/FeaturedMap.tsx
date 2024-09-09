@@ -43,10 +43,9 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
     <>
       <BaseMap>
         <MapLayers map={maps[activeMap || 0]} />
-        <MapManager />
+        <MapManager>{children}</MapManager>
         <LayerEditor />
       </BaseMap>
-      {children}
     </>
   )
 }

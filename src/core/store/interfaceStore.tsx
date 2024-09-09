@@ -6,7 +6,10 @@
 //   activeMap?: number
 // }>({})
 
+import { GeoJSON } from 'ol/format'
 import { create } from 'zustand'
+
+type availablePanels = 'layers'
 
 export interface InterfaceStore {
   activePanel?: 'layers'
@@ -15,17 +18,24 @@ export interface InterfaceStore {
   activeGeometryID?: number
   activeGeometry?: API.GEOMETRY.detail
   bBoxLock?: number[]
-  editorTool?: 'Lasso' | 'Pen' | 'Circle' | 'Line' | 'Point' | 'Selection'
+  editorTool?: 'Lasso' | 'Pen' | 'Circle' | 'Line' | 'Point' | 'Edit' | 'Move' | 'Select' // undefined = move
+  pendingGeometry?: {
+    layer: number
+    id?: number
+    geojson: string
+  }
+  pendingLayer?: number
 }
 
 export interface InterfaceAction {
-  setActivePanel: (panel?: 'layers') => void
+  setActivePanel: (panel?: availablePanels) => void
   setActiveLayer: (layer?: number) => void
   setActiveMap: (map?: number) => void
   setActiveGeometryID: (geometry?: number) => void
   setActiveGeometry: (geometry?: API.GEOMETRY.detail) => void
   setBBoxLock: (lock?: number[]) => void
   setEditorTool: (tool?: InterfaceStore['editorTool']) => void
+  setPendingGeometry: (geojson?: InterfaceStore['pendingGeometry']) => void
 }
 
 export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) => ({
@@ -43,4 +53,5 @@ export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) 
   setBBoxLock: (lock?: number[]) => set({ bBoxLock: lock }),
   editorTool: undefined,
   setEditorTool: (tool?: InterfaceStore['editorTool']) => set({ editorTool: tool }),
+  setPendingGeometry: (geojson?: InterfaceStore['pendingGeometry']) => set({ pendingGeometry: geojson }),
 }))

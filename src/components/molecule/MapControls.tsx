@@ -2,7 +2,7 @@
 
 import MapControl from '@/components/atom/MapControl'
 import {
-  CrosshairSimple,
+  ArrowsInCardinal,
   Lock,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
@@ -32,7 +32,6 @@ export default function MapControls() {
         Icon={MagnifyingGlassPlus}
         onClick={() => {
           const olView = map.getView()
-          // setView({ ...view, zoom: view.zoom < 21 ? view.zoom + 1 : 21, resolution: undefined })
           olView.animate({ zoom: view.zoom + 1, duration: 300 }, (finished) => {
             if (!finished) return setView({ ...view, zoom: view.zoom + 1, resolution: undefined })
           })
@@ -46,21 +45,20 @@ export default function MapControls() {
           olView.animate({ zoom: view.zoom - 1, duration: 300 }, (finished) => {
             if (!finished) return setView({ ...view, zoom: view.zoom - 1, resolution: undefined })
           })
-          // setView({ ...view, zoom: view.zoom > 3 ? view.zoom - 1 : 3, resolution: undefined })
         }}
         label="-Zoom"
       />
       <MapControl
         Icon={Stack}
         active={activePanel === 'layers'}
-        label={'Camadas'}
+        label={'Painéis'}
         onClick={() => {
           setActivePanel(activePanel === 'layers' ? undefined : 'layers')
         }}
       />
       <hr className="border-tertiary" />
       <MapControl
-        Icon={CrosshairSimple}
+        Icon={ArrowsInCardinal}
         label={'Centralizar mapa'}
         onClick={() => {
           adapter.getMapBBox(activeMap!).then((response) => {
@@ -76,7 +74,7 @@ export default function MapControls() {
       />
       <MapControl
         Icon={Lock}
-        label={'Travar posição'}
+        label={'Limitar movimento'}
         active={!!bBoxLock}
         onClick={() => {
           if (!!bBoxLock) {

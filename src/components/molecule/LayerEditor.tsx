@@ -1,21 +1,31 @@
 'use client'
 
+import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { Collection, Feature } from 'ol'
-import { platformModifierKeyOnly } from 'ol/events/condition'
+import { Feature } from 'ol'
+import { click, platformModifierKeyOnly } from 'ol/events/condition'
 import { GeoJSON } from 'ol/format'
-import { Snap } from 'ol/interaction'
-import { features } from 'process'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { Geometry } from 'ol/geom'
+import { DrawEvent } from 'ol/interaction/Draw'
+import VectorTileLayer from 'ol/layer/VectorTile'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapBrowserEvent, RInteraction, RLayerVector, RStyle, RFeature, useOL } from 'rlayers'
 
 export interface ILayersEditorProps {}
 
 export default function LayerEditor({}: ILayersEditorProps) {
-  const { editorTool, setEditorTool, activeGeometry } = useInterfaceStore()
-  const { map } = useOL()
+  const {
+    editorTool,
+    setEditorTool,
+    activeGeometry,
+    activeLayer,
+    setPendingGeometry,
+    pendingGeometry,
+    setActiveGeometryID,
+  } = useInterfaceStore()
   const vectorLayer = useRef<RLayerVector>(null)
   const modifyRef = useRef(null)
+  const isCtrlPressed = useCallback((e: MapBrowserEvent<UIEvent>) => platformModifierKeyOnly(e) && click(e), [])
   const GeometryJsonObject = useMemo(() => {
     if (!activeGeometry) {
       return null
@@ -27,45 +37,96 @@ export default function LayerEditor({}: ILayersEditorProps) {
     }).readFeatures(activeGeometry?.geom)
   }, [activeGeometry])
 
-  useEffect(() => {
-    if (!GeometryJsonObject || !vectorLayer.current || !modifyRef) {
+  async function allowGeometryToBeSent(geom: Geometry) {
+    if (pendingGeometry) {
       return
     }
 
-    const snap = new Snap({
-      source: vectorLayer.current?.source,
-    })
-    map.addInteraction(snap)
-  }, [map, GeometryJsonObject, modifyRef])
-  return (
-    <RLayerVector zIndex={9999} ref={vectorLayer}>
-      <RStyle.RStyle>
-        <RStyle.RStroke color="#eb8432" width={3} />
-        <RStyle.RFill color="rgba(235, 132, 50, 0.75)" />
-      </RStyle.RStyle>
+    if (!geom) {
+      return console.error('Attempting to submit an empty geometry')
+    }
 
-      {activeGeometry?.geom &&
-        GeometryJsonObject?.map((feature) => {
-          return <RFeature key={`Feature.${feature.getId()}`} feature={feature} />
-        })}
+    if (!activeLayer) {
+      return console.error('User is drawing a geometry on void layer... this goes deeper.')
+    }
+    const geojson = new GeoJSON().writeGeometry(geom.clone().transform('EPSG:3857', 'EPSG:4326'))
+    const layer = activeLayer
+    const id = activeGeometry?.id_geometry
 
-      <RInteraction.RDraw
-        type={'Polygon'}
-        condition={() => editorTool === 'Lasso' || editorTool === 'Pen'}
-        freehandCondition={() => editorTool === 'Lasso'}
-        snapTolerance={64}
-        onDrawEnd={() => {
-          setEditorTool('Selection')
-        }}
-      />
-      <RInteraction.RDraw type={'Point'} condition={() => editorTool === 'Point'} />
-      <RInteraction.RDraw type={'LineString'} condition={() => editorTool === 'Line'} />
+    setPendingGeometry({ layer, id, geojson: geojson })
+    // TODO: Remove instances of geometryID from interface state store.
+    // setActiveGeometryID(undefined)
+  }
 
-      <RInteraction.RModify
-        ref={modifyRef}
-        condition={() => editorTool === 'Selection'}
-        deleteCondition={useCallback((e: MapBrowserEvent<UIEvent>) => platformModifierKeyOnly(e), [])}
-      />
-    </RLayerVector>
-  )
+  return activeLayer
+    ? (console.log('geom', activeGeometry?.geom),
+      (
+        <RLayerVector zIndex={9999} ref={vectorLayer}>
+          <RStyle.RStyle>
+            <RStyle.RStroke color="#eb8432" width={3} />
+            <RStyle.RFill color="rgba(235, 132, 50, 0.75)" />
+          </RStyle.RStyle>
+          {activeGeometry?.geom &&
+            GeometryJsonObject?.map((feature) => {
+              return <RFeature key={`Feature.${feature.getId()}`} feature={feature} onClick={() => {}} />
+            })}
+
+          <RInteraction.RDraw
+            type={'Polygon'}
+            condition={() => !pendingGeometry && (editorTool === 'Lasso' || editorTool === 'Pen')}
+            freehandCondition={() => !pendingGeometry && editorTool === 'Lasso'}
+            snapTolerance={8}
+            onDrawEnd={(e) => {
+              setEditorTool('Edit')
+              const geom = e.feature!.getGeometry()
+              if (!geom) {
+                return
+              }
+              allowGeometryToBeSent(geom)
+            }}
+          />
+          <RInteraction.RDraw
+            type={'Point'}
+            snapTolerance={8}
+            condition={() => !pendingGeometry && editorTool === 'Point'}
+            onDrawEnd={(e) => {
+              setEditorTool('Edit')
+              const geom = e.feature!.getGeometry()
+              if (!geom) {
+                return
+              }
+              allowGeometryToBeSent(geom)
+            }}
+          />
+          <RInteraction.RDraw
+            type={'LineString'}
+            snapTolerance={8}
+            condition={() => !pendingGeometry && editorTool === 'Line'}
+            onDrawEnd={(e) => {
+              setEditorTool('Edit')
+              const geom = e.feature!.getGeometry()
+              if (!geom) {
+                return
+              }
+              allowGeometryToBeSent(geom)
+            }}
+          />
+
+          <RInteraction.RModify
+            ref={modifyRef}
+            condition={(e) => {
+              return editorTool === 'Edit'
+            }}
+            onModifyEnd={(e) => {
+              const geom = e.features.getArray()[0]?.getGeometry()
+              if (!geom) {
+                return console.error('User attempted successfully modified a non existent feature. congratulations.')
+              }
+              allowGeometryToBeSent(geom)
+            }}
+            deleteCondition={isCtrlPressed}
+          />
+        </RLayerVector>
+      ))
+    : null
 }

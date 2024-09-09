@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
+import { GeoJSON } from 'ol/format'
 
 export class ApiAdapter {
   private _client: AxiosInstance
@@ -62,6 +63,26 @@ export class ApiAdapter {
   public async updateForm(geometryID: number, formData: API.RAW.BatchFormValues) {
     try {
       const result = await this._client.post(`/geometries/${geometryID}/infos/`, formData)
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  public async createGeometry(layerID: number, geom: string) {
+    try {
+      const result = await this._client.post('/geometries/', { geom: JSON.parse(geom), layer: layerID })
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  public async updateGeometry(geometryID: number, geom: string) {
+    try {
+      const result = await this._client.put(`/geometries/${geometryID}/`, { geom: JSON.parse(geom) })
 
       return result.data
     } catch (e) {

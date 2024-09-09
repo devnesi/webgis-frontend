@@ -13,20 +13,15 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
   const parser = useMemo(() => new MVT(), [])
   const adapter = useMemo(() => new ApiAdapter(), [])
   // const [flow, setFlow] = useState([])
-  const { setActiveGeometryID, activeGeometryID, setActiveGeometry, activeGeometry, editorTool, setActiveLayer } =
-    useInterfaceStore()
-  // const [temporaryGeometry, setTemporaryGeometry] = useState<API.GEOMETRY.detail | null>()
-
-  const GeometryJsonObject = useMemo(() => {
-    if (!activeGeometry) {
-      return null
-    }
-
-    return new GeoJSON({
-      featureProjection: 'EPSG:3857',
-      featureClass: Feature,
-    }).readFeatures(activeGeometry?.geom)
-  }, [activeGeometry])
+  const {
+    setActiveGeometryID,
+    activeGeometryID,
+    setActiveGeometry,
+    activeGeometry,
+    editorTool,
+    setActiveLayer,
+    pendingGeometry,
+  } = useInterfaceStore()
 
   useEffect(() => {
     if (!activeGeometryID) {
@@ -55,8 +50,8 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
     <>
       {map?.layers
         .sort((a, b) => (a?.order || 1) * -1 - (b?.order || 1) * -1)
-        .map(
-          (layer) =>
+        .map((layer) => {
+          return (
             layer.enabled && (
               <RLayerVectorTile
                 key={`layer.${layer.id_layer}.render`}
@@ -66,32 +61,24 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
                 // @ts-expect-error - Same attributes, different types
                 format={parser}
                 onClick={(e) => {
-                  if (editorTool !== undefined) return
+                  if (editorTool !== 'Select' || !!pendingGeometry) return
                   const geometryID = e.target.get('id_geometry')
                   const geometryLayerID = e.target.get('id_layer')
                   geometryLayerID && setActiveLayer(geometryLayerID)
                   return geometryID && setActiveGeometryID(geometryID === activeGeometryID ? undefined : geometryID)
                 }}>
-                {editorTool ? (
-                  <RStyle>
-                    <RCircle radius={3}>
-                      <RFill color={'#007bff33'} />
-                    </RCircle>
-                    <RStroke color={'#007bff33'} width={2} />
-                    <RFill color={'#007bff33'} />
-                  </RStyle>
-                ) : (
-                  <RStyle>
-                    <RCircle radius={layer?.style?.radius || 5}>
-                      <RFill color={layer?.style?.fill || '#007bff'} />
-                    </RCircle>
-                    <RStroke color={layer?.style?.stroke || '#007bff'} width={2} />
-                    <RFill color={layer?.style?.fill || '#007bff4D'} />
-                  </RStyle>
-                )}
+                <RStyle>
+                  <RCircle radius={layer?.style?.radius || 5}>
+                    <RFill color={layer?.style?.fill || '#007bff'} />
+                  </RCircle>
+
+                  <RStroke color={layer?.style?.stroke || '#007bff'} width={2} />
+                  <RFill color={layer?.style?.fill || '#007bff4D'} />
+                </RStyle>
               </RLayerVectorTile>
             )
-        )}
+          )
+        })}
     </>
   )
 }
