@@ -21,13 +21,20 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { AnimatePresence, motion, stagger } from 'framer-motion'
 import { useOL } from 'rlayers'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import VectorLayer from 'ol/layer/Vector'
 // eslint-disable-next-line react-hooks/rules-of-hooks
 
 export default function EditorControls() {
-  const { activeMap, activeLayer, setPendingGeometry, editorTool, setEditorTool, activeGeometry, pendingGeometry } =
-    useInterfaceStore()
-
-  const { map } = useOL()
+  const {
+    activeMap,
+    activeLayer,
+    setPendingGeometry,
+    editorTool,
+    setEditorTool,
+    activeGeometry,
+    pendingGeometry,
+    setActiveGeometryID,
+  } = useInterfaceStore()
 
   const maps = useMapStore((state) => state.maps)
 
@@ -38,42 +45,9 @@ export default function EditorControls() {
     return layer.layer_type
   }, [activeLayer, activeMap, maps])
 
-  const adapater = useMemo(() => new ApiAdapter(), [])
-
-  const uploadEditedGeometry = () => {
-    if (!pendingGeometry || !map) {
-      return
-    }
-
-    if (pendingGeometry.id) {
-      adapater.updateGeometry(pendingGeometry.id, pendingGeometry.geojson).then(() => {
-        setPendingGeometry(undefined)
-        map.getAllLayers().forEach((l) => {
-          if (l instanceof VectorTileLayer) {
-            l.getSource()?.refresh()
-          }
-        })
-      })
-    }
-
-    if (!pendingGeometry.id && pendingGeometry.layer) {
-      adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(() => {
-        setPendingGeometry(undefined)
-        map.getAllLayers().forEach((l) => {
-          if (l instanceof VectorTileLayer) {
-            l.getSource()?.refresh()
-          }
-        })
-      })
-    }
-
-    // TODO: Refresh map view
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }
-
   return (
     <>
-      <div className="flex flex-col gap-2 mr-auto p-4 pointer-events-auto">
+      <div className="flex flex-col gap-2 mr-auto p-4 pointer-events-none">
         <MapControl
           Icon={editorTool === 'Move' ? HandGrabbing : Hand}
           label={'Mover'}
@@ -140,9 +114,10 @@ export default function EditorControls() {
             <MapControl
               Icon={Dot}
               label={'Ponto'}
-              disabled={layerType !== 'Point'}
+              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Point'}
               active={layerType === 'Point' && editorTool === 'Point'}
               onClick={() => {
+                setActiveGeometryID(undefined)
                 setEditorTool(editorTool === 'Point' ? undefined : 'Point')
               }}
               stagger={{
@@ -157,9 +132,10 @@ export default function EditorControls() {
             <MapControl
               Icon={LineSegments}
               label={'Linha'}
-              disabled={layerType !== 'LineString'}
+              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'LineString'}
               active={layerType === 'LineString' && editorTool === 'Line'}
               onClick={() => {
+                setActiveGeometryID(undefined)
                 setEditorTool(editorTool === 'Line' ? undefined : 'Line')
               }}
               stagger={{
@@ -174,9 +150,10 @@ export default function EditorControls() {
             <MapControl
               Icon={Polygon}
               label={'Polígono'}
-              disabled={layerType !== 'Polygon'}
+              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Polygon'}
               active={layerType === 'Polygon' && editorTool === 'Pen'}
               onClick={() => {
+                setActiveGeometryID(undefined)
                 setEditorTool(editorTool === 'Pen' ? undefined : 'Pen')
               }}
               stagger={{
@@ -186,7 +163,7 @@ export default function EditorControls() {
             />
           )}
         </AnimatePresence>
-        <AnimatePresence>
+        {/* <AnimatePresence>
           {activeLayer && (
             <MapControl
               Icon={Faders}
@@ -202,17 +179,17 @@ export default function EditorControls() {
               }}
             />
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
       </div>
-      <div className="absolute flex justify-center items-end w-full h-full pointer-events-none">
+      {/* <div className="top-4 absolute flex justify-center items-start w-full h-min pointer-events-none">
         <button
           className="bg-black mb-12 p-4 rounded-full pointer-events-auto"
           onClick={() => {
-            uploadEditedGeometry()
+
           }}>
           Salvar as bagaça
         </button>
-      </div>
+      </div> */}
     </>
   )
 }

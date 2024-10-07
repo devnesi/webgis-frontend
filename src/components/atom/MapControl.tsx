@@ -11,18 +11,29 @@ export interface IMapControl {
   label?: string
   active?: boolean
   disabled?: boolean
+  text?: string
+  className?: string
   stagger?: {
     i: number
     n: number
   }
 }
 
-export default function MapControl({ Icon, onClick, label, active, disabled, stagger: staggerOptions }: IMapControl) {
+export default function MapControl({
+  Icon,
+  onClick,
+  label,
+  active,
+  disabled,
+  stagger: staggerOptions,
+  className,
+  text,
+}: IMapControl) {
   const staggerChildren = stagger(0.025)
   return (
     <Tooltip.Provider delayDuration={300}>
       <Tooltip.Root>
-        <Tooltip.Trigger asChild disabled={disabled}>
+        <Tooltip.Trigger asChild disabled={disabled} className="pointer-events-auto">
           <motion.div
             transition={{
               duration: 0.05,
@@ -42,15 +53,17 @@ export default function MapControl({ Icon, onClick, label, active, disabled, sta
               opacity: 0,
             }}
             className={clsx(
-              'border-zinc-800 hover:border-accent hover:bg-accent/60 opacity-0 p-2 border rounded-md duration-300 cursor-pointer',
+              'flex items-center gap-2 border-zinc-800 hover:border-accent hover:bg-accent/60 p-2 border rounded-md min-w-[32px] min-h-[32px] duration-300 cursor-pointer',
               {
                 'bg-accent/90 border-accent text-primary': active,
                 'bg-primary': !active,
                 '!bg-secondary !text-white/40': disabled,
-              }
+              },
+              className
             )}
             onClick={!disabled ? onClick : undefined}>
             <Icon weight="duotone" size={24} />
+            {text && <span>{text}</span>}
           </motion.div>
         </Tooltip.Trigger>
         <Tooltip.Portal>

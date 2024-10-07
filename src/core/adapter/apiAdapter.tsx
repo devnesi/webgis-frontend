@@ -89,4 +89,14 @@ export class ApiAdapter {
       console.error(e)
     }
   }
+
+  public async deleteGeometry(geometryID: number) {
+    try {
+      const result = await this._client.delete(`/geometries/${geometryID}/`)
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }

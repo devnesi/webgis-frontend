@@ -38,10 +38,6 @@ export default function LayerEditor({}: ILayersEditorProps) {
   }, [activeGeometry])
 
   async function allowGeometryToBeSent(geom: Geometry) {
-    if (pendingGeometry) {
-      return
-    }
-
     if (!geom) {
       return console.error('Attempting to submit an empty geometry')
     }
@@ -54,79 +50,76 @@ export default function LayerEditor({}: ILayersEditorProps) {
     const id = activeGeometry?.id_geometry
 
     setPendingGeometry({ layer, id, geojson: geojson })
-    // TODO: Remove instances of geometryID from interface state store.
-    // setActiveGeometryID(undefined)
   }
 
-  return activeLayer
-    ? (console.log('geom', activeGeometry?.geom),
-      (
-        <RLayerVector zIndex={9999} ref={vectorLayer}>
-          <RStyle.RStyle>
-            <RStyle.RStroke color="#eb8432" width={3} />
-            <RStyle.RFill color="rgba(235, 132, 50, 0.75)" />
-          </RStyle.RStyle>
-          {activeGeometry?.geom &&
-            GeometryJsonObject?.map((feature) => {
-              return <RFeature key={`Feature.${feature.getId()}`} feature={feature} onClick={() => {}} />
-            })}
+  return activeLayer ? (
+    <RLayerVector zIndex={9999} ref={vectorLayer}>
+      <RStyle.RStyle>
+        <RStyle.RStroke color="#eb8432" width={3} />
+        <RStyle.RFill color="rgba(235, 132, 50, 0.75)" />
+        <RStyle.RIcon src="/point.png" />
+      </RStyle.RStyle>
+      {activeGeometry?.geom &&
+        GeometryJsonObject?.map((feature) => {
+          return <RFeature key={`Feature.${feature.getId()}`} feature={feature} />
+        })}
 
-          <RInteraction.RDraw
-            type={'Polygon'}
-            condition={() => !pendingGeometry && (editorTool === 'Lasso' || editorTool === 'Pen')}
-            freehandCondition={() => !pendingGeometry && editorTool === 'Lasso'}
-            snapTolerance={8}
-            onDrawEnd={(e) => {
-              setEditorTool('Edit')
-              const geom = e.feature!.getGeometry()
-              if (!geom) {
-                return
-              }
-              allowGeometryToBeSent(geom)
-            }}
-          />
-          <RInteraction.RDraw
-            type={'Point'}
-            snapTolerance={8}
-            condition={() => !pendingGeometry && editorTool === 'Point'}
-            onDrawEnd={(e) => {
-              setEditorTool('Edit')
-              const geom = e.feature!.getGeometry()
-              if (!geom) {
-                return
-              }
-              allowGeometryToBeSent(geom)
-            }}
-          />
-          <RInteraction.RDraw
-            type={'LineString'}
-            snapTolerance={8}
-            condition={() => !pendingGeometry && editorTool === 'Line'}
-            onDrawEnd={(e) => {
-              setEditorTool('Edit')
-              const geom = e.feature!.getGeometry()
-              if (!geom) {
-                return
-              }
-              allowGeometryToBeSent(geom)
-            }}
-          />
+      <RInteraction.RDraw
+        type={'Polygon'}
+        condition={() => !activeGeometry && !pendingGeometry && (editorTool === 'Lasso' || editorTool === 'Pen')}
+        freehandCondition={() => !pendingGeometry && editorTool === 'Lasso'}
+        snapTolerance={8}
+        onDrawEnd={(e) => {
+          setEditorTool('Edit')
+          const geom = e.feature!.getGeometry()
+          if (!geom) {
+            return
+          }
+          allowGeometryToBeSent(geom)
+        }}
+      />
+      <RInteraction.RDraw
+        type={'Point'}
+        snapTolerance={8}
+        condition={() => !activeGeometry && !pendingGeometry && editorTool === 'Point'}
+        onDrawEnd={(e) => {
+          console.log('Point', e)
+          setEditorTool('Edit')
+          const geom = e.feature!.getGeometry()
+          if (!geom) {
+            return
+          }
+          allowGeometryToBeSent(geom)
+        }}
+      />
+      <RInteraction.RDraw
+        type={'LineString'}
+        snapTolerance={8}
+        condition={() => !activeGeometry && !pendingGeometry && editorTool === 'Line'}
+        onDrawEnd={(e) => {
+          setEditorTool('Edit')
+          const geom = e.feature!.getGeometry()
+          if (!geom) {
+            return
+          }
+          allowGeometryToBeSent(geom)
+        }}
+      />
 
-          <RInteraction.RModify
-            ref={modifyRef}
-            condition={(e) => {
-              return editorTool === 'Edit'
-            }}
-            onModifyEnd={(e) => {
-              const geom = e.features.getArray()[0]?.getGeometry()
-              if (!geom) {
-                return console.error('User attempted successfully modified a non existent feature. congratulations.')
-              }
-              allowGeometryToBeSent(geom)
-            }}
-            deleteCondition={isCtrlPressed}
-          />
-        </RLayerVector>
-      ))
-    : null
+      <RInteraction.RModify
+        ref={modifyRef}
+        condition={(e) => {
+          return editorTool === 'Edit'
+        }}
+        onModifyEnd={(e) => {
+          const geom = e.features.getArray()[0]?.getGeometry()
+          if (!geom) {
+            return console.error('User attempted successfully modified a non existent feature. congratulations.')
+          }
+          allowGeometryToBeSent(geom)
+        }}
+        deleteCondition={isCtrlPressed}
+      />
+    </RLayerVector>
+  ) : null
 }

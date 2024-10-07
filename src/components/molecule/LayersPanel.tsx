@@ -11,6 +11,7 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useOL } from 'rlayers'
 import { transformExtent } from 'ol/proj'
 import { useState } from 'react'
+import { set } from 'ol/transform'
 
 export default function LayersPanel() {
   const { maps, setMaps } = useMapStore()
@@ -122,8 +123,12 @@ export default function LayersPanel() {
                         }),
                       },
                     })
+                    if (layer.enabled) {
+                      setActiveLayer(undefined)
+                      setActiveGeometryID(undefined)
+                    }
                   }}>
-                  {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" />}
+                  {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" className="text-white/40" />}
                 </div>
                 <div
                   className={clsx(
@@ -150,7 +155,12 @@ export default function LayersPanel() {
                       })}
                     />
                   </div>
-                  <span className="w-full text-ellipsis whitespace-nowrap overflow-hidden">{layer.name}</span>
+                  <span
+                    className={clsx('w-full text-ellipsis whitespace-nowrap overflow-hidden', {
+                      'text-white/40': !layer.enabled,
+                    })}>
+                    {layer.name}
+                  </span>
                 </div>
                 <div
                   className="flex justify-center items-center hover:bg-tertiary h-full duration-200 cursor-pointer aspect-square"
