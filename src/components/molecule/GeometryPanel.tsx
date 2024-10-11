@@ -4,7 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { ArrowsDownUp, PlusCircle, Table, Textbox, X } from '@phosphor-icons/react'
+import { ArrowLineRight, ArrowsDownUp, PlusCircle, Table, Textbox, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LineString, Polygon } from 'ol/geom'
@@ -12,7 +12,7 @@ import { debounce } from '@/core/utils/debounce'
 import clsx from 'clsx'
 
 export default function GeometryPanel() {
-  const { activeGeometryID, activeGeometry, setActivePanel, activeLayer } = useInterfaceStore()
+  const { activeGeometryID, activeGeometry, setActivePanel, activeLayer, activePanel } = useInterfaceStore()
   const [isFormListOpen, setFormListOpen] = useState<boolean>(false)
   const [activeForm, setActiveForm] = useState<API.RAW.Form | null>(null)
   const [forms, setForms] = useState<API.GEOMETRY.listForms | null>(null)
@@ -117,13 +117,13 @@ export default function GeometryPanel() {
             ? `Camada [${activeLayer}]`
             : 'Nenhum objeto selecionado'}
         </span>
-        <X
+        <ArrowLineRight
           className="hover:text-red-400 duration-200 cursor-pointer"
           onClick={() => {
             // if (!activeGeometryID && activeLayer) {
             //   setActiveLayer(undefined)
             // }
-            setActivePanel(undefined)
+            setActivePanel(activePanel !== 'compactLayers' ? 'compactLayers' : 'layers')
           }}
         />
       </div>

@@ -21,6 +21,7 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
     editorTool,
     setActiveLayer,
     pendingGeometry,
+    setActivePanel,
   } = useInterfaceStore()
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
                   const geometryID = e.target.get('id_geometry')
                   const geometryLayerID = e.target.get('id_layer')
                   geometryLayerID && setActiveLayer(geometryLayerID)
+                  geometryID && setActivePanel('layers')
                   return geometryID && setActiveGeometryID(geometryID === activeGeometryID ? undefined : geometryID)
                 }}>
                 <RStyle>

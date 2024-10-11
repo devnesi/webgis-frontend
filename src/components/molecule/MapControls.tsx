@@ -6,22 +6,19 @@ import {
   Lock,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
-  Square,
   Stack,
   StackSimple,
 } from '@phosphor-icons/react'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import { useOlStore } from '@/core/store/olStore'
 import { useOL } from 'rlayers'
-import { boundingExtent } from 'ol/extent'
-import { fromLonLat, transformExtent } from 'ol/proj'
+import { transformExtent } from 'ol/proj'
 import { View } from 'ol'
-import { useMapStore } from '@/core/store/mapStore'
 import { useMemo } from 'react'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 
 export default function MapControls() {
-  const { activePanel, setActivePanel, setBBoxLock, bBoxLock, activeMap } = useInterfaceStore()
+  const { activePanel, setActivePanel, setBBoxLock, bBoxLock, activeMap, activeGeometry } = useInterfaceStore()
   const { view, setView } = useOlStore()
   const { map } = useOL()
   const adapter = useMemo(() => new ApiAdapter(), [])
@@ -51,9 +48,17 @@ export default function MapControls() {
       <MapControl
         Icon={Stack}
         active={activePanel === 'layers'}
-        label={'Painéis'}
+        label={'Painel detalhado'}
         onClick={() => {
           setActivePanel(activePanel === 'layers' ? undefined : 'layers')
+        }}
+      />
+      <MapControl
+        Icon={StackSimple}
+        active={activePanel === 'compactLayers'}
+        label={'Painel simples'}
+        onClick={() => {
+          setActivePanel(activePanel === 'compactLayers' ? undefined : 'compactLayers')
         }}
       />
       <hr className="border-tertiary" />

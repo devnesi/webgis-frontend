@@ -3,25 +3,25 @@ import LayersPanel from '../molecule/LayersPanel'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import GeometryPanel from '../molecule/GeometryPanel'
 import { AnimatePresence } from 'framer-motion'
-import EditorControls from '../atom/EditorControls'
+import EditorControls from '../molecule/EditorControls'
 import LayerEditor from '../molecule/LayerEditor'
 import GeometrySettingsModal from '../molecule/GeometrySettingsModal'
-import LayerControls from '../molecule/LayerControls'
+import PendingActionsDisplay from '../molecule/PendingActionsDisplay'
 
 export default function MapManager({ children }: { children?: React.ReactNode | React.ReactNode[] }) {
-  const { activeLayer, activePanel, activeGeometryID: activeGeometry } = useInterfaceStore()
+  const { activePanel } = useInterfaceStore()
 
   return (
     <div className="top-0 right-0 z-[50] absolute flex w-full h-full pointer-events-none select-none">
       {children}
       <EditorControls />
-      <LayerControls />
+      <PendingActionsDisplay />
       <MapControls />
       <AnimatePresence presenceAffectsLayout mode="popLayout">
-        {activePanel === 'layers' && <LayersPanel />}
+        {(activePanel === 'layers' || activePanel === 'compactLayers') && <LayersPanel />}
       </AnimatePresence>
       <AnimatePresence presenceAffectsLayout mode="popLayout">
-        {activePanel && <GeometryPanel />}
+        {activePanel === 'layers' && <GeometryPanel />}
       </AnimatePresence>
     </div>
   )

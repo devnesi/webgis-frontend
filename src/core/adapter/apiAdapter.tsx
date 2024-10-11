@@ -99,4 +99,17 @@ export class ApiAdapter {
       console.error(e)
     }
   }
+
+  public async updateLayerSpecification(layerSpecification: API.RAW.Layer) {
+    try {
+      const result = await this._client.patch<API.RAW.Layer>(
+        `/layers/${layerSpecification.id_layer}/`,
+        layerSpecification
+      )
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }

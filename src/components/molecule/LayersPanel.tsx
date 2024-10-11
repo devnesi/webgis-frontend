@@ -10,8 +10,7 @@ import clsx from 'clsx'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useOL } from 'rlayers'
 import { transformExtent } from 'ol/proj'
-import { useState } from 'react'
-import { set } from 'ol/transform'
+import { useMemo, useState } from 'react'
 
 export default function LayersPanel() {
   const { maps, setMaps } = useMapStore()
@@ -20,6 +19,7 @@ export default function LayersPanel() {
   const [isMapListOpen, setMapListOpen] = useState<boolean>(false)
   const { map } = useOL()
   const mapLayers = maps[activeMap || 0]?.layers
+  const adapter = useMemo(() => new ApiAdapter(), [])
 
   return (
     <motion.div
@@ -108,25 +108,36 @@ export default function LayersPanel() {
                 <div
                   className="flex justify-center items-center bg-secondary hover:bg-tertiary p-2 h-full duration-200 cursor-pointer aspect-square"
                   onClick={() => {
-                    setMaps({
-                      ...maps,
-                      [activeMap!]: {
-                        ...maps[activeMap!],
-                        layers: maps[activeMap!].layers.map((l) => {
-                          if (l.id_layer === layer.id_layer) {
-                            return {
-                              ...l,
-                              enabled: !l.enabled,
-                            }
-                          }
-                          return l
-                        }),
-                      },
-                    })
-                    if (layer.enabled) {
-                      setActiveLayer(undefined)
-                      setActiveGeometryID(undefined)
-                    }
+                    adapter
+                      .updateLayerSpecification({
+                        ...layer,
+                        enabled: !layer.enabled,
+                      })
+                      .then(() => {
+                        setMaps({
+                          ...maps,
+                          [activeMap!]: {
+                            ...maps[activeMap!],
+                            layers: maps[activeMap!].layers.map((l) => {
+                              if (l.id_layer === layer.id_layer) {
+                                return {
+                                  ...l,
+                                  enabled: !l.enabled,
+                                }
+                              }
+                              return l
+                            }),
+                          },
+                        })
+                        if (layer.enabled) {
+                          setActiveLayer(undefined)
+                          setActiveGeometryID(undefined)
+                        }
+                      })
+                      .catch((e) => {
+                        // reload, our data is broken.
+                        window.location.reload()
+                      })
                   }}>
                   {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" className="text-white/40" />}
                 </div>

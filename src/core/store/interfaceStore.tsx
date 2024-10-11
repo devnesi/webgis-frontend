@@ -9,10 +9,10 @@
 import { GeoJSON } from 'ol/format'
 import { create } from 'zustand'
 
-type availablePanels = 'layers'
+type availablePanels = 'layers' | 'compactLayers'
 
 export interface InterfaceStore {
-  activePanel?: 'layers'
+  activePanel?: availablePanels
   activeLayer?: number
   activeMap?: number
   activeGeometryID?: number
@@ -42,7 +42,7 @@ export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) 
   activePanel: 'layers',
   activeLayer: undefined,
   activeMap: undefined,
-  setActivePanel: (panel?: 'layers') => set({ activePanel: panel }),
+  setActivePanel: (panel?: availablePanels) => set({ activePanel: panel }),
   setActiveLayer: (layer?: number) => set({ activeLayer: layer }),
   setActiveMap: (map?: number) => set({ activeMap: map }),
   activeGeometryID: undefined,
