@@ -39,10 +39,11 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMap])
 
+  const map = maps[activeMap || 0]
   return (
     <>
       <BaseMap>
-        <MapLayers map={maps[activeMap || 0]} />
+        <MapLayers map={map} layers={map?.layers || []} />
         <MapManager>{children}</MapManager>
         <LayerEditor />
       </BaseMap>

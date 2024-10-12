@@ -25,6 +25,8 @@ import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorLayer from 'ol/layer/Vector'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { HexAlphaColorPicker } from 'react-colorful'
+import { set } from 'ol/transform'
+import { usePathname } from 'next/navigation'
 // eslint-disable-next-line react-hooks/rules-of-hooks
 
 export default function EditorControls() {
@@ -40,7 +42,7 @@ export default function EditorControls() {
   } = useInterfaceStore()
 
   const { map } = useOL()
-  const maps = useMapStore((state) => state.maps)
+  const { maps, setMaps } = useMapStore()
   const [previousTool, setPreviousTool] = useState<typeof editorTool>(undefined)
   const [showLayerEditor, setShowLayerEditor] = useState(false)
   const adapater = useMemo(() => new ApiAdapter(), [])
@@ -84,7 +86,10 @@ export default function EditorControls() {
     setActiveGeometryID(undefined)
     setEditorTool('Select')
     map.getAllLayers().forEach((l) => {
-      if (includeEdittingCanvas ? l instanceof VectorLayer : l instanceof VectorTileLayer || l instanceof VectorLayer) {
+      if (includeEdittingCanvas) {
+        return l.getSource()?.refresh()
+      }
+      if (l instanceof VectorTileLayer || l instanceof VectorLayer) {
         l.getSource()?.refresh()
       }
     })
@@ -112,7 +117,6 @@ export default function EditorControls() {
           adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(clearLayers)
         }
       }
-
       switch (e.key) {
         case ' ': {
           if (editorTool !== 'Move') {
@@ -124,7 +128,9 @@ export default function EditorControls() {
           if (activeGeometry) {
             setActiveGeometryID(undefined)
           }
-          clearLayers(true)
+          if (pendingGeometry) {
+            clearLayers(true)
+          }
           break
         }
         case 's': {
@@ -156,10 +162,16 @@ export default function EditorControls() {
           setEditorTool('Select')
           break
         }
+        case 'Delete': {
+          if (activeGeometry) {
+            adapater.deleteGeometry(activeGeometry.id_geometry).then(clearLayers)
+          }
+          break
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorTool, previousTool, setEditorTool, pendingGeometry]
+    [editorTool, previousTool, setEditorTool, pendingGeometry, activeGeometry]
   )
 
   const handleKeyUp = useCallback(
@@ -193,7 +205,8 @@ export default function EditorControls() {
       window.removeEventListener('keyup', handleKeyUp)
     }
   }, [editorTool, handleKeyPress, handleKeyUp])
-
+  const route = usePathname()
+  console.log(route)
   return (
     <>
       {showLayerEditor && (
@@ -262,7 +275,26 @@ export default function EditorControls() {
                     })
                     .then(() => {
                       setShowLayerEditor(false)
-                      clearLayers(true)
+                      setMaps({
+                        ...maps,
+                        [activeMap!]: {
+                          ...maps[activeMap!],
+                          layers: maps[activeMap!].layers.map((l) => {
+                            if (l.id_layer === activeLayer) {
+                              return {
+                                ...l,
+                                name: layerEditorNameInput.current?.value || activeLayerData.name,
+                                style: {
+                                  fill: layerEditorFillColor,
+                                  stroke: layerEditorStrokeColor,
+                                },
+                              }
+                            }
+                            return l
+                          }),
+                        },
+                      })
+                      clearLayers()
                     })
                 }}>
                 <UploadSimple /> salvar
@@ -298,166 +330,145 @@ export default function EditorControls() {
             n: 7,
           }}
         />
-        <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={Pencil}
-              label={'Editar'}
-              active={editorTool === 'Edit'}
-              disabled={!activeLayer}
-              shortcut="E"
-              onClick={() => {
-                setEditorTool(editorTool === 'Edit' ? undefined : 'Edit')
-              }}
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <motion.hr
-              transition={{
-                duration: 0.05,
-                bounce: false,
-                delay: stagger(0.1, {})(1.5, 7),
-              }}
-              initial={{
-                y: '-50%',
-                opacity: 0,
-              }}
-              animate={{
-                y: 0,
-                opacity: 1,
-              }}
-              exit={{
-                y: '-100%',
-                opacity: 0,
-              }}
-              className="border-tertiary"
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={Swatches}
-              label={'Customizar camada'}
-              active={showLayerEditor}
-              disabled={!activeLayer}
-              shortcut="Shift+C"
-              onClick={() => {
-                setShowLayerEditor(!showLayerEditor)
-              }}
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <motion.hr
-              transition={{
-                duration: 0.05,
-                bounce: false,
-                delay: stagger(0.1, {})(1.5, 7),
-              }}
-              initial={{
-                y: '-50%',
-                opacity: 0,
-              }}
-              animate={{
-                y: 0,
-                opacity: 1,
-              }}
-              exit={{
-                y: '-100%',
-                opacity: 0,
-              }}
-              className="border-tertiary"
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={Dot}
-              label={'Ponto'}
-              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Point'}
-              active={layerType === 'Point' && editorTool === 'Point'}
-              onClick={() => {
-                setActiveGeometryID(undefined)
-                setEditorTool(editorTool === 'Point' ? undefined : 'Point')
-              }}
-              shortcut="Shift+P"
-              stagger={{
-                i: 3,
-                n: 7,
-              }}
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={LineSegments}
-              label={'Linha'}
-              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'LineString'}
-              active={layerType === 'LineString' && editorTool === 'Line'}
-              onClick={() => {
-                setActiveGeometryID(undefined)
-                setEditorTool(editorTool === 'Line' ? undefined : 'Line')
-              }}
-              stagger={{
-                i: 4,
-                n: 7,
-              }}
-              shortcut="L"
-            />
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={Polygon}
-              label={'Polígono'}
-              disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Polygon'}
-              active={layerType === 'Polygon' && editorTool === 'Pen'}
-              onClick={() => {
-                setActiveGeometryID(undefined)
-                setEditorTool(editorTool === 'Pen' ? undefined : 'Pen')
-              }}
-              stagger={{
-                i: 5,
-                n: 7,
-              }}
-              shortcut="P"
-            />
-          )}
-        </AnimatePresence>
-        {/* <AnimatePresence>
-          {activeLayer && (
-            <MapControl
-              Icon={Faders}
-              label={'Configurações'}
-              disabled={!activeLayer}
-              active={false}
-              stagger={{
-                i: 6,
-                n: 7,
-              }}
-              onClick={() => {
-                // TODO: Open layer config modal
-              }}
-            />
-          )}
-        </AnimatePresence> */}
-      </div>
-      {/* <div className="top-4 absolute flex justify-center items-start w-full h-min pointer-events-none">
-        <button
-          className="bg-black mb-12 p-4 rounded-full pointer-events-auto"
-          onClick={() => {
 
-          }}>
-          Salvar as bagaça
-        </button>
-      </div> */}
+        {route.startsWith('/editor') && (
+          <>
+            <AnimatePresence>
+              {activeLayer && (
+                <MapControl
+                  Icon={Pencil}
+                  label={'Editar'}
+                  active={editorTool === 'Edit'}
+                  disabled={!activeLayer}
+                  shortcut="E"
+                  onClick={() => {
+                    setEditorTool(editorTool === 'Edit' ? undefined : 'Edit')
+                  }}
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <motion.hr
+                  transition={{
+                    duration: 0.05,
+                    bounce: false,
+                    delay: stagger(0.1, {})(1.5, 7),
+                  }}
+                  initial={{
+                    y: '-50%',
+                    opacity: 0,
+                  }}
+                  animate={{
+                    y: 0,
+                    opacity: 1,
+                  }}
+                  exit={{
+                    y: '-100%',
+                    opacity: 0,
+                  }}
+                  className="border-tertiary"
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <MapControl
+                  Icon={Swatches}
+                  label={'Customizar camada'}
+                  active={showLayerEditor}
+                  disabled={!activeLayer}
+                  shortcut="Shift+C"
+                  onClick={() => {
+                    setShowLayerEditor(!showLayerEditor)
+                  }}
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <motion.hr
+                  transition={{
+                    duration: 0.05,
+                    bounce: false,
+                    delay: stagger(0.1, {})(1.5, 7),
+                  }}
+                  initial={{
+                    y: '-50%',
+                    opacity: 0,
+                  }}
+                  animate={{
+                    y: 0,
+                    opacity: 1,
+                  }}
+                  exit={{
+                    y: '-100%',
+                    opacity: 0,
+                  }}
+                  className="border-tertiary"
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <MapControl
+                  Icon={Dot}
+                  label={'Ponto'}
+                  disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Point'}
+                  active={layerType === 'Point' && editorTool === 'Point'}
+                  onClick={() => {
+                    setActiveGeometryID(undefined)
+                    setEditorTool(editorTool === 'Point' ? undefined : 'Point')
+                  }}
+                  shortcut="Shift+P"
+                  stagger={{
+                    i: 3,
+                    n: 7,
+                  }}
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <MapControl
+                  Icon={LineSegments}
+                  label={'Linha'}
+                  disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'LineString'}
+                  active={layerType === 'LineString' && editorTool === 'Line'}
+                  onClick={() => {
+                    setActiveGeometryID(undefined)
+                    setEditorTool(editorTool === 'Line' ? undefined : 'Line')
+                  }}
+                  stagger={{
+                    i: 4,
+                    n: 7,
+                  }}
+                  shortcut="L"
+                />
+              )}
+            </AnimatePresence>
+            <AnimatePresence>
+              {activeLayer && (
+                <MapControl
+                  Icon={Polygon}
+                  label={'Polígono'}
+                  disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Polygon'}
+                  active={layerType === 'Polygon' && editorTool === 'Pen'}
+                  onClick={() => {
+                    setActiveGeometryID(undefined)
+                    setEditorTool(editorTool === 'Pen' ? undefined : 'Pen')
+                  }}
+                  stagger={{
+                    i: 5,
+                    n: 7,
+                  }}
+                  shortcut="P"
+                />
+              )}
+            </AnimatePresence>
+          </>
+        )}
+      </div>
     </>
   )
 }

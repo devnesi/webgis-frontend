@@ -4,8 +4,6 @@ import { useInterfaceStore } from '@/core/store/interfaceStore'
 import GeometryPanel from '../molecule/GeometryPanel'
 import { AnimatePresence } from 'framer-motion'
 import EditorControls from '../molecule/EditorControls'
-import LayerEditor from '../molecule/LayerEditor'
-import GeometrySettingsModal from '../molecule/GeometrySettingsModal'
 import PendingActionsDisplay from '../molecule/PendingActionsDisplay'
 
 export default function MapManager({ children }: { children?: React.ReactNode | React.ReactNode[] }) {

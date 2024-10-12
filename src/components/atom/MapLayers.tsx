@@ -9,7 +9,12 @@ import { Point, Polygon, LineString, MultiPolygon } from 'ol/geom'
 import { fromLonLat } from 'ol/proj'
 import { Feature } from 'ol'
 
-export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.RAW.Layer[] } }) {
+export interface MapLayersProps {
+  map: API.RAW.Map
+  layers: API.RAW.Layer[]
+}
+
+export default function MapLayers({ map, layers }: MapLayersProps) {
   const parser = useMemo(() => new MVT(), [])
   const adapter = useMemo(() => new ApiAdapter(), [])
   // const [flow, setFlow] = useState([])
@@ -49,9 +54,9 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
 
   return (
     <>
-      {map?.layers
-        .sort((a, b) => (a?.order || 1) * -1 - (b?.order || 1) * -1)
-        .map((layer) => {
+      {layers
+        ?.sort((a, b) => (a?.order || 1) * -1 - (b?.order || 1) * -1)
+        ?.map((layer) => {
           return (
             layer.enabled && (
               <RLayerVectorTile
@@ -66,7 +71,7 @@ export default function MapLayers({ map }: { map?: API.RAW.Map & { layers: API.R
                   const geometryID = e.target.get('id_geometry')
                   const geometryLayerID = e.target.get('id_layer')
                   geometryLayerID && setActiveLayer(geometryLayerID)
-                  geometryID && setActivePanel('layers')
+                  geometryID && setActivePanel('compactLayers')
                   return geometryID && setActiveGeometryID(geometryID === activeGeometryID ? undefined : geometryID)
                 }}>
                 <RStyle>

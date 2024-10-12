@@ -11,6 +11,7 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useOL } from 'rlayers'
 import { transformExtent } from 'ol/proj'
 import { useMemo, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function LayersPanel() {
   const { maps, setMaps } = useMapStore()
@@ -20,6 +21,7 @@ export default function LayersPanel() {
   const { map } = useOL()
   const mapLayers = maps[activeMap || 0]?.layers
   const adapter = useMemo(() => new ApiAdapter(), [])
+  const route = usePathname()
 
   return (
     <motion.div
@@ -45,55 +47,57 @@ export default function LayersPanel() {
         opacity: 0,
         minWidth: 0,
       }}>
-      <DropdownMenu.Root open={isMapListOpen} onOpenChange={setMapListOpen}>
-        <DropdownMenu.Trigger asChild>
-          <div className="flex justify-between items-center bg-secondary p-4 border-tertiary border-b w-full text-sm cursor-pointer select-none">
-            <span className="flex items-center gap-2">
-              <GlobeHemisphereWest weight="duotone" /> {maps[activeMap || 0]?.name || 'Selecione um mapa'}
-            </span>
-            <ArrowsDownUp />
-          </div>
-        </DropdownMenu.Trigger>
+      {Object.keys(maps).length > 1 && (
+        <DropdownMenu.Root open={isMapListOpen} onOpenChange={setMapListOpen}>
+          <DropdownMenu.Trigger asChild>
+            <div className="flex justify-between items-center bg-secondary p-4 border-tertiary border-b w-full text-sm cursor-pointer select-none">
+              <span className="flex items-center gap-2">
+                <GlobeHemisphereWest weight="duotone" /> {maps[activeMap || 0]?.name || 'Selecione um mapa'}
+              </span>
+              <ArrowsDownUp />
+            </div>
+          </DropdownMenu.Trigger>
 
-        <DropdownMenu.Portal>
-          <AnimatePresence>
-            {isMapListOpen && (
-              <DropdownMenu.Content className="z-[52] shadow-2xl w-full min-w-[300px]" sideOffset={0}>
-                <motion.div
-                  className="w-full h-full"
-                  initial={{
-                    opacity: 0.6,
-                    y: '-20%',
-                    translateY: -8,
-                    scaleY: 0.6,
-                  }}
-                  transition={{
-                    duration: 0.2,
-                    bounce: false,
-                  }}
-                  animate={{ opacity: 1, translateY: 0, scaleY: 1, y: 0 }}
-                  exit={{ opacity: 0.6, translateY: -8, scaleY: 0.6, y: '-20%' }}
-                  key="map-list">
-                  {Object.values(maps).map((map) => {
-                    return (
-                      <DropdownMenu.Item
-                        className="bg-secondary hover:bg-accent px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-sm hover:text-primary duration-200 cursor-pointer select-none focus:outline-none"
-                        key={`map.select.${map.id_map}`}
-                        onClick={() => {
-                          setActiveMap(map.id_map)
-                        }}>
-                        <span className="flex items-center gap-2">
-                          <MapTrifold weight="duotone" /> {map.name || 'Sem nome'}
-                        </span>
-                      </DropdownMenu.Item>
-                    )
-                  })}
-                </motion.div>
-              </DropdownMenu.Content>
-            )}
-          </AnimatePresence>
-        </DropdownMenu.Portal>
-      </DropdownMenu.Root>
+          <DropdownMenu.Portal>
+            <AnimatePresence>
+              {isMapListOpen && (
+                <DropdownMenu.Content className="z-[52] shadow-2xl w-full min-w-[300px]" sideOffset={0}>
+                  <motion.div
+                    className="w-full h-full"
+                    initial={{
+                      opacity: 0.6,
+                      y: '-20%',
+                      translateY: -8,
+                      scaleY: 0.6,
+                    }}
+                    transition={{
+                      duration: 0.2,
+                      bounce: false,
+                    }}
+                    animate={{ opacity: 1, translateY: 0, scaleY: 1, y: 0 }}
+                    exit={{ opacity: 0.6, translateY: -8, scaleY: 0.6, y: '-20%' }}
+                    key="map-list">
+                    {Object.values(maps).map((map) => {
+                      return (
+                        <DropdownMenu.Item
+                          className="bg-secondary hover:bg-accent px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-sm hover:text-primary duration-200 cursor-pointer select-none focus:outline-none"
+                          key={`map.select.${map.id_map}`}
+                          onClick={() => {
+                            setActiveMap(map.id_map)
+                          }}>
+                          <span className="flex items-center gap-2">
+                            <MapTrifold weight="duotone" /> {map.name || 'Sem nome'}
+                          </span>
+                        </DropdownMenu.Item>
+                      )
+                    })}
+                  </motion.div>
+                </DropdownMenu.Content>
+              )}
+            </AnimatePresence>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      )}
 
       <div className="flex flex-col w-full">
         {mapLayers
@@ -108,36 +112,40 @@ export default function LayersPanel() {
                 <div
                   className="flex justify-center items-center bg-secondary hover:bg-tertiary p-2 h-full duration-200 cursor-pointer aspect-square"
                   onClick={() => {
-                    adapter
-                      .updateLayerSpecification({
-                        ...layer,
-                        enabled: !layer.enabled,
-                      })
-                      .then(() => {
-                        setMaps({
-                          ...maps,
-                          [activeMap!]: {
-                            ...maps[activeMap!],
-                            layers: maps[activeMap!].layers.map((l) => {
-                              if (l.id_layer === layer.id_layer) {
-                                return {
-                                  ...l,
-                                  enabled: !l.enabled,
-                                }
+                    if (typeof activeMap === 'number') {
+                      setMaps({
+                        ...maps,
+                        [activeMap]: {
+                          ...maps[activeMap],
+                          layers: maps[activeMap].layers.map((l) => {
+                            if (l.id_layer === layer.id_layer) {
+                              return {
+                                ...l,
+                                enabled: !l.enabled,
                               }
-                              return l
-                            }),
-                          },
+                            }
+                            return l
+                          }),
+                        },
+                      })
+                    }
+
+                    if (route.startsWith('/editor')) {
+                      adapter
+                        .updateLayerSpecification({
+                          ...layer,
+                          enabled: !layer.enabled,
                         })
-                        if (layer.enabled) {
-                          setActiveLayer(undefined)
-                          setActiveGeometryID(undefined)
-                        }
-                      })
-                      .catch((e) => {
-                        // reload, our data is broken.
-                        window.location.reload()
-                      })
+                        .then(() => {
+                          if (layer.enabled) {
+                            setActiveLayer(undefined)
+                            setActiveGeometryID(undefined)
+                          }
+                        })
+                        .catch((e) => {
+                          console.error('Failed to change layer status on backend - Are you logged in?', e)
+                        })
+                    }
                   }}>
                   {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" className="text-white/40" />}
                 </div>

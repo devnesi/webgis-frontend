@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 
-export function Browser({ children }: { children: ReactNode }) {
+export function Browser({ children }: { children?: ReactNode }) {
   const [hasMounted, setHasMounted] = useState(false)
 
   useEffect(() => {

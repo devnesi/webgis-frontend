@@ -2,15 +2,17 @@
 
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import { useOlStore } from '@/core/store/olStore'
-import { Collection } from 'ol'
+import { Collection, MapEvent } from 'ol'
 import { boundingExtent } from 'ol/extent'
 import { GeoJSON, MVT } from 'ol/format'
 import { DragPan, Snap } from 'ol/interaction'
+import VectorLayer from 'ol/layer/Vector'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import { fromLonLat } from 'ol/proj'
 import { Source } from 'ol/source'
 import VectorSource from 'ol/source/Vector'
 import React, { ReactNode, useEffect, useMemo, useRef } from 'react'
+import VectorTileSource from 'ol/source/VectorTile'
 
 import { RLayerVector, RMap, ROSMWebGL } from 'rlayers'
 
@@ -26,14 +28,6 @@ export default function BaseMap({ children }: { children?: ReactNode }): JSX.Ele
     if (!activeMap) return
 
     const interactions = activeMap.ol.getInteractions().getArray()
-    console.table(
-      interactions.map((i) => {
-        return {
-          instance: i.constructor.name,
-          value: i,
-        }
-      })
-    )
 
     // remove dragPan interaction
     const dragPan = interactions.find((i) => i instanceof DragPan)
@@ -44,7 +38,7 @@ export default function BaseMap({ children }: { children?: ReactNode }): JSX.Ele
 
     // Add interaction to map
     activeMap.ol.addInteraction(dragPanNoKinetics)
-  }, [map])
+  }, [map, activeLayer])
 
   return (
     <RMap

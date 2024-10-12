@@ -16,6 +16,7 @@ import { transformExtent } from 'ol/proj'
 import { View } from 'ol'
 import { useMemo } from 'react'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
+import { usePathname } from 'next/navigation'
 
 export default function MapControls() {
   const { activePanel, setActivePanel, setBBoxLock, bBoxLock, activeMap, activeGeometry } = useInterfaceStore()

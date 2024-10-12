@@ -83,7 +83,6 @@ export default function LayerEditor({}: ILayersEditorProps) {
         snapTolerance={8}
         condition={() => !activeGeometry && !pendingGeometry && editorTool === 'Point'}
         onDrawEnd={(e) => {
-          console.log('Point', e)
           setEditorTool('Edit')
           const geom = e.feature!.getGeometry()
           if (!geom) {

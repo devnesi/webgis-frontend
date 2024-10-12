@@ -36,6 +36,12 @@ export class ApiAdapter {
     return {}
   }
 
+  public async getMap(mapId: number) {
+    const result = await this._client.get<API.RAW.Map>(`/maps/${mapId}/`)
+
+    return result.data
+  }
+
   public async getGeometry(geometryID: number) {
     const result = await this._client.get<API.GEOMETRY.detail>(`/geometries/${geometryID}/`)
 
