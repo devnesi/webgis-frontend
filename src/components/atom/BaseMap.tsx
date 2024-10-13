@@ -46,7 +46,7 @@ export default function BaseMap({ children }: { children?: ReactNode }): JSX.Ele
       height={'100vh'}
       initial={view}
       view={[view, setView]}
-      maxZoom={28}
+      maxZoom={20}
       noDefaultControls
       projection="EPSG:3857"
       ref={map}
