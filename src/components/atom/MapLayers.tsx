@@ -1,13 +1,11 @@
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { useMapStore } from '@/core/store/mapStore'
-import { GeoJSON, MVT } from 'ol/format'
-import { act, useCallback, useEffect, useMemo, useState } from 'react'
-import { RFeature, RLayerVector, RLayerVectorTile, ROverlay } from 'rlayers'
+import { MVT } from 'ol/format'
+import { useEffect, useMemo } from 'react'
+import { RLayerVectorTile, useOL } from 'rlayers'
 import { RCircle, RFill, RStroke, RStyle } from 'rlayers/style'
-import { Point, Polygon, LineString, MultiPolygon } from 'ol/geom'
-import { fromLonLat } from 'ol/proj'
-import { Feature } from 'ol'
+import { useOlStore } from '@/core/store/olStore'
+import MagneticLayer from './TestGrounds'
 
 export interface MapLayersProps {
   map: API.RAW.Map
@@ -16,8 +14,10 @@ export interface MapLayersProps {
 
 export default function MapLayers({ map, layers }: MapLayersProps) {
   const parser = useMemo(() => new MVT(), [])
+  const view = useOlStore((state) => state.view)
   const adapter = useMemo(() => new ApiAdapter(), [])
-  // const [flow, setFlow] = useState([])
+  const { map: OlMap } = useOL()
+
   const {
     setActiveGeometryID,
     activeGeometryID,
@@ -50,7 +50,7 @@ export default function MapLayers({ map, layers }: MapLayersProps) {
 
       setActiveGeometry(geometry)
     })()
-  }, [activeGeometryID])
+  }, [activeGeometryID, view])
 
   return (
     <>
@@ -78,7 +78,6 @@ export default function MapLayers({ map, layers }: MapLayersProps) {
                   <RCircle radius={layer?.style?.radius || 5}>
                     <RFill color={layer?.style?.fill || '#007bff'} />
                   </RCircle>
-
                   <RStroke color={layer?.style?.stroke || '#007bff'} width={2} />
                   <RFill color={layer?.style?.fill || '#007bff4D'} />
                 </RStyle>

@@ -8,6 +8,7 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useMapStore } from '@/core/store/mapStore'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import LayerEditor from '../molecule/LayerEditor'
+import MagneticLayer from '../atom/TestGrounds'
 
 export default function FeaturedMap({ children }: { children?: React.ReactNode | React.ReactNode[] }) {
   const { maps, setMaps } = useMapStore()
@@ -46,6 +47,7 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
         <MapLayers map={map} layers={map?.layers || []} />
         <MapManager>{children}</MapManager>
         <LayerEditor />
+        <MagneticLayer />
       </BaseMap>
     </>
   )
