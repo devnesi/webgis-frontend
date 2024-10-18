@@ -16,6 +16,7 @@ export default function MagneticLayer() {
   const { map } = useOL()
 
   useEffect(() => {
+    /*
     console.log('entrooooou')
     if (!map) {
       return
@@ -53,7 +54,7 @@ export default function MagneticLayer() {
           })
         )
       }
-    }
+    }*/
   }, [map.getView().calculateExtent()])
 
   return <></>
