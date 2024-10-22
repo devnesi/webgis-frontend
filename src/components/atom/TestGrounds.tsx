@@ -1,5 +1,6 @@
 'use client'
 
+import { useInterfaceStore } from '@/core/store/interfaceStore'
 import { Collection, Feature, VectorTile } from 'ol'
 import { WKT } from 'ol/format'
 import { Geometry } from 'ol/geom'
@@ -14,10 +15,9 @@ import { RFeature, RLayerVector, useOL, useRLayersComponent } from 'rlayers'
 
 export default function MagneticLayer() {
   const { map } = useOL()
+  const { magneticLock } = useInterfaceStore()
 
   useEffect(() => {
-    /*
-    console.log('entrooooou')
     if (!map) {
       return
     }
@@ -27,6 +27,10 @@ export default function MagneticLayer() {
       .getArray()
       .filter((i) => i instanceof Snap)
       .forEach((i) => map.removeInteraction(i))
+
+    if (!magneticLock) {
+      return
+    }
 
     const vectorTileLayers = map.getAllLayers().filter((l) => l instanceof VectorTileLayer)
 
@@ -54,8 +58,8 @@ export default function MagneticLayer() {
           })
         )
       }
-    }*/
-  }, [map.getView().calculateExtent()])
+    }
+  }, [magneticLock, map.getView().calculateExtent()])
 
   return <></>
 }

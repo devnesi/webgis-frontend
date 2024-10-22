@@ -105,8 +105,6 @@ export default function EditorControls() {
 
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault()
-        console.log('Saving geometry', pendingGeometry)
-
         if (!pendingGeometry) return
 
         if (pendingGeometry.id) {
@@ -156,10 +154,6 @@ export default function EditorControls() {
           if (layerType === 'LineString' || layerType === 'Line') {
             setEditorTool('Line')
           }
-          break
-        }
-        case 's': {
-          setEditorTool('Select')
           break
         }
         case 'Delete': {

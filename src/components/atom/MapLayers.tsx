@@ -27,6 +27,7 @@ export default function MapLayers({ map, layers }: MapLayersProps) {
     setActiveLayer,
     pendingGeometry,
     setActivePanel,
+    setEditorTool,
   } = useInterfaceStore()
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function MapLayers({ map, layers }: MapLayersProps) {
                 format={parser}
                 onClick={(e) => {
                   if (editorTool !== 'Select' || !!pendingGeometry) return
+                  setEditorTool('Edit')
                   const geometryID = e.target.get('id_geometry')
                   const geometryLayerID = e.target.get('id_layer')
                   geometryLayerID && setActiveLayer(geometryLayerID)

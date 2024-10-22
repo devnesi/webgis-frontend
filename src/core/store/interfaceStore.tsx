@@ -18,6 +18,7 @@ export interface InterfaceStore {
   activeGeometryID?: number
   activeGeometry?: API.GEOMETRY.detail
   bBoxLock?: number[]
+  magneticLock?: boolean
   editorTool?: 'Lasso' | 'Pen' | 'Circle' | 'Line' | 'Point' | 'Edit' | 'Move' | 'Select' // undefined = move
   pendingGeometry?: {
     layer: number
@@ -36,6 +37,7 @@ export interface InterfaceAction {
   setBBoxLock: (lock?: number[]) => void
   setEditorTool: (tool?: InterfaceStore['editorTool']) => void
   setPendingGeometry: (geojson?: InterfaceStore['pendingGeometry']) => void
+  setMagneticLock: (lock: boolean) => void
 }
 
 export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) => ({
@@ -54,4 +56,5 @@ export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) 
   editorTool: undefined,
   setEditorTool: (tool?: InterfaceStore['editorTool']) => set({ editorTool: tool }),
   setPendingGeometry: (geojson?: InterfaceStore['pendingGeometry']) => set({ pendingGeometry: geojson }),
+  setMagneticLock: (lock: boolean) => set({ magneticLock: lock }),
 }))

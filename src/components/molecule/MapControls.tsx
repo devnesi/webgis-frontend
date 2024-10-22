@@ -4,6 +4,7 @@ import MapControl from '@/components/atom/MapControl'
 import {
   ArrowsInCardinal,
   Lock,
+  MagnetStraight,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
   Stack,
@@ -19,7 +20,8 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { usePathname } from 'next/navigation'
 
 export default function MapControls() {
-  const { activePanel, setActivePanel, setBBoxLock, bBoxLock, activeMap, activeGeometry } = useInterfaceStore()
+  const { activePanel, setActivePanel, setBBoxLock, bBoxLock, activeMap, magneticLock, setMagneticLock } =
+    useInterfaceStore()
   const { view, setView } = useOlStore()
   const { map } = useOL()
   const adapter = useMemo(() => new ApiAdapter(), [])
@@ -105,6 +107,14 @@ export default function MapControls() {
             newView.fit(currentExtent)
             map.setView(newView)
           }
+        }}
+      />
+      <MapControl
+        Icon={MagnetStraight}
+        label={'Encaixe Inteligente'}
+        active={!!magneticLock}
+        onClick={() => {
+          setMagneticLock(!magneticLock)
         }}
       />
     </div>
