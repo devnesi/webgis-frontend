@@ -10,18 +10,133 @@ import clsx from 'clsx'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useOL } from 'rlayers'
 import { transformExtent } from 'ol/proj'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { ReactSortable } from 'react-sortablejs'
 
-export default function LayersPanel() {
-  const { maps, setMaps } = useMapStore()
-  const { activeMap, setActiveMap, setActiveLayer, activeLayer, setEditorTool, setActiveGeometryID } =
-    useInterfaceStore()
-  const [isMapListOpen, setMapListOpen] = useState<boolean>(false)
+export function LayerRow({
+  layer,
+  onLayerVisibilityChange,
+}: {
+  layer: API.RAW.Layer
+  onLayerVisibilityChange: (visibility: boolean) => void
+}) {
+  const { activeMap, setActiveLayer, activeLayer, setEditorTool, setActiveGeometryID } = useInterfaceStore()
   const { map } = useOL()
-  const mapLayers = maps[activeMap || 0]?.layers
   const adapter = useMemo(() => new ApiAdapter(), [])
   const route = usePathname()
+
+  return (
+    <div
+      className={clsx('flex items-center border-tertiary border-b rounded w-full h-12 group', {
+        'bg-accent/5': layer.id_layer === activeLayer,
+      })}>
+      <div
+        className="group-hover:bg-accent/5 flex justify-center items-center bg-secondary hover:!bg-tertiary p-2 h-full duration-200 cursor-pointer aspect-square peer"
+        onClick={() => {
+          if (typeof activeMap === 'number') {
+            onLayerVisibilityChange(!layer.enabled)
+          }
+
+          if (route.startsWith('/editor')) {
+            adapter
+              .updateLayerSpecification({
+                ...layer,
+                enabled: !layer.enabled,
+              })
+              .then(() => {
+                if (layer.enabled) {
+                  setActiveLayer(undefined)
+                  setActiveGeometryID(undefined)
+                }
+              })
+              .catch((e) => {
+                console.error('Failed to change layer status on backend - Are you logged in?', e)
+              })
+          }
+        }}>
+        {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" className="text-white/40" />}
+      </div>
+      <div
+        className={clsx(
+          'group-hover:bg-accent/5 flex items-center gap-2 px-2 w-full h-full text-ellipsis text-xs duration-200 cursor-pointer overflow-hidden peer',
+          {
+            'text-accent': layer.id_layer === activeLayer,
+          }
+        )}
+        onClick={() => {
+          setEditorTool(undefined)
+          setActiveLayer(activeLayer === layer.id_layer ? undefined : layer.id_layer)
+          setActiveGeometryID(undefined)
+        }}>
+        <div className="flex justify-center items-center w-4 h-full">
+          <span
+            style={{
+              border: `solid 2px ${layer?.style?.stroke || '#007bff'}`,
+              backgroundColor: layer?.style?.fill || 'transparent',
+            }}
+            className={clsx({
+              'w-4 h-4': layer.layer_type === 'Polygon' || layer.layer_type === 'MultiPolygon',
+              'w-4 h-1': layer.layer_type === 'Line' || layer.layer_type === 'LineString',
+              'rounded-full w-2 h-2': layer.layer_type === 'Point',
+            })}
+          />
+        </div>
+        <span
+          className={clsx('w-full text-ellipsis whitespace-nowrap overflow-hidden', {
+            'text-white/40': !layer.enabled,
+          })}>
+          {layer.name}
+        </span>
+      </div>
+      <div
+        className="group-hover:bg-accent/5 flex justify-center items-center hover:!bg-tertiary h-full text-white/40 hover:text-white duration-200 cursor-pointer aspect-square"
+        onClick={() => {
+          const adapter = new ApiAdapter()
+          adapter.getLayerBBox(layer.id_layer).then((response) => {
+            const bbox = response.bbox.replace('BOX(', '').replace(')', '')
+            const lonLatTuple = bbox.replace(',', ' ')
+            const bBox = lonLatTuple.split(' ').map((c) => parseFloat(c))
+
+            const extent = transformExtent(bBox, 'EPSG:4326', 'EPSG:3857')
+            map?.getView().fit(extent, { duration: 300 })
+          })
+        }}>
+        <ArrowsInCardinal size={24} />
+      </div>
+    </div>
+  )
+}
+
+export default function LayersPanel() {
+  const { maps } = useMapStore()
+  const { setMaps } = useMapStore()
+  const { activeMap, setActiveMap } = useInterfaceStore()
+  const [isMapListOpen, setMapListOpen] = useState<boolean>(false)
+  const adapater = useMemo(() => new ApiAdapter(), [])
+  const [layers, setLayers] = useState<(API.RAW.Layer & { id: number })[]>([])
+
+  useEffect(() => {
+    const mapLayers = maps[activeMap || 0]?.layers
+    const layersWithID = mapLayers?.map((l) => {
+      return { ...l, id: l.id_layer }
+    })
+    layersWithID?.sort((a, b) => (a?.order || 1) - (b?.order || 1))
+    setLayers(layersWithID || [])
+  }, [activeMap])
+
+  const doChangeListOrder = (ls: (API.RAW.Layer & { id: number })[]) => {
+    if (!layers.every((element, index) => element === ls[index])) {
+      adapater.updateLayersOrders({
+        orders: ls.map((l, i) => {
+          console.log('INDEX', i + 1)
+          return { id_layer: l.id_layer, order: i + 1, name: l.name }
+        }),
+      })
+    }
+
+    setLayers(ls)
+  }
 
   return (
     <motion.div
@@ -100,105 +215,46 @@ export default function LayersPanel() {
       )}
 
       <div className="flex flex-col w-full">
-        {mapLayers
-          ?.sort((a, b) => (a?.order || 1) * -1 - (b?.order || 1) * -1)
-          .map((layer) => {
+        <ReactSortable list={layers} setList={doChangeListOrder}>
+          {layers.map((layer) => {
             return (
-              <div
-                className={clsx('flex items-center border-tertiary border-b rounded w-full h-12', {
-                  'bg-accent/5': layer.id_layer === activeLayer,
-                })}
-                key={`layer.${layer.id_layer}.map.${activeMap}`}>
-                <div
-                  className="flex justify-center items-center bg-secondary hover:bg-tertiary p-2 h-full duration-200 cursor-pointer aspect-square"
-                  onClick={() => {
-                    if (typeof activeMap === 'number') {
-                      setMaps({
-                        ...maps,
-                        [activeMap]: {
-                          ...maps[activeMap],
-                          layers: maps[activeMap].layers.map((l) => {
-                            if (l.id_layer === layer.id_layer) {
-                              return {
-                                ...l,
-                                enabled: !l.enabled,
-                              }
+              <LayerRow
+                layer={layer}
+                key={`layer.${layer.id_layer}.map.${activeMap}`}
+                onLayerVisibilityChange={(vis) => {
+                  if (activeMap) {
+                    setMaps({
+                      ...maps,
+                      [activeMap]: {
+                        ...maps[activeMap],
+                        layers: layers.map((l) => {
+                          if (l.id_layer === layer.id_layer) {
+                            return {
+                              ...l,
+                              enabled: !l.enabled,
                             }
-                            return l
-                          }),
-                        },
-                      })
-                    }
-
-                    if (route.startsWith('/editor')) {
-                      adapter
-                        .updateLayerSpecification({
-                          ...layer,
-                          enabled: !layer.enabled,
-                        })
-                        .then(() => {
-                          if (layer.enabled) {
-                            setActiveLayer(undefined)
-                            setActiveGeometryID(undefined)
                           }
-                        })
-                        .catch((e) => {
-                          console.error('Failed to change layer status on backend - Are you logged in?', e)
-                        })
-                    }
-                  }}>
-                  {layer.enabled ? <Eye weight="duotone" /> : <EyeSlash weight="duotone" className="text-white/40" />}
-                </div>
-                <div
-                  className={clsx(
-                    'flex items-center gap-2 hover:bg-tertiary px-2 w-full h-full text-ellipsis text-xs duration-200 cursor-pointer overflow-hidden',
-                    {
-                      'text-accent': layer.id_layer === activeLayer,
-                    }
-                  )}
-                  onClick={() => {
-                    setEditorTool(undefined)
-                    setActiveLayer(activeLayer === layer.id_layer ? undefined : layer.id_layer)
-                    setActiveGeometryID(undefined)
-                  }}>
-                  <div className="flex justify-center items-center w-4 h-full">
-                    <span
-                      style={{
-                        border: `solid 2px ${layer?.style?.stroke || '#007bff'}`,
-                        backgroundColor: layer?.style?.fill || 'transparent',
-                      }}
-                      className={clsx({
-                        'w-4 h-4': layer.layer_type === 'Polygon' || layer.layer_type === 'MultiPolygon',
-                        'w-4 h-1': layer.layer_type === 'Line' || layer.layer_type === 'LineString',
-                        'rounded-full w-2 h-2': layer.layer_type === 'Point',
-                      })}
-                    />
-                  </div>
-                  <span
-                    className={clsx('w-full text-ellipsis whitespace-nowrap overflow-hidden', {
-                      'text-white/40': !layer.enabled,
-                    })}>
-                    {layer.name}
-                  </span>
-                </div>
-                <div
-                  className="flex justify-center items-center hover:bg-tertiary h-full duration-200 cursor-pointer aspect-square"
-                  onClick={() => {
-                    const adapter = new ApiAdapter()
-                    adapter.getLayerBBox(layer.id_layer).then((response) => {
-                      const bbox = response.bbox.replace('BOX(', '').replace(')', '')
-                      const lonLatTuple = bbox.replace(',', ' ')
-                      const bBox = lonLatTuple.split(' ').map((c) => parseFloat(c))
-
-                      const extent = transformExtent(bBox, 'EPSG:4326', 'EPSG:3857')
-                      map?.getView().fit(extent, { duration: 1000 })
+                          return l
+                        }),
+                      },
                     })
-                  }}>
-                  <ArrowsInCardinal size={24} />
-                </div>
-              </div>
+                    setLayers(
+                      layers.map((l) => {
+                        if (l.id_layer === layer.id_layer) {
+                          return {
+                            ...l,
+                            enabled: !l.enabled,
+                          }
+                        }
+                        return l
+                      })
+                    )
+                  }
+                }}
+              />
             )
           })}
+        </ReactSortable>
       </div>
     </motion.div>
   )

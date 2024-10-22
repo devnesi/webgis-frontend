@@ -118,4 +118,14 @@ export class ApiAdapter {
       console.error(e)
     }
   }
+
+  public async updateLayersOrders(layers: { orders: Pick<API.RAW.Layer, 'id_layer' | 'order'>[] }) {
+    try {
+      const result = await this._client.post<API.RAW.Layer[]>('/layers/updateOrder/', layers)
+
+      return result.data
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }

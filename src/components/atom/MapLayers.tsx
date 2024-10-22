@@ -12,11 +12,10 @@ export interface MapLayersProps {
   layers: API.RAW.Layer[]
 }
 
-export default function MapLayers({ map, layers }: MapLayersProps) {
+export default function MapLayers({ layers }: MapLayersProps) {
   const parser = useMemo(() => new MVT(), [])
   const view = useOlStore((state) => state.view)
   const adapter = useMemo(() => new ApiAdapter(), [])
-  const { map: OlMap } = useOL()
 
   const {
     setActiveGeometryID,
@@ -51,13 +50,13 @@ export default function MapLayers({ map, layers }: MapLayersProps) {
 
       setActiveGeometry(geometry)
     })()
-  }, [activeGeometryID, view])
+  }, [activeGeometryID])
 
   return (
     <>
       {layers
-        ?.sort((a, b) => (a?.order || 1) * -1 - (b?.order || 1) * -1)
-        ?.map((layer) => {
+        ?.sort((a, b) => (b.order || 1) - (a.order || 1))
+        .map((layer) => {
           return (
             layer.enabled && (
               <RLayerVectorTile

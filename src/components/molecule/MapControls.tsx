@@ -76,7 +76,9 @@ export default function MapControls() {
 
             const LonLat = transformExtent(bBox, 'EPSG:4326', 'EPSG:3857')
 
-            map.getView().fit(LonLat)
+            map.getView().fit(LonLat, {
+              duration: 300,
+            })
           })
         }}
       />

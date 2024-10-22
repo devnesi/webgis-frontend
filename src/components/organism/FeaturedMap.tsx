@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react'
 import BaseMap from '../atom/BaseMap'
 import MapLayers from '../atom/MapLayers'
+import { DndContext } from '@dnd-kit/core'
 import MapManager from './MapManager'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useMapStore } from '@/core/store/mapStore'
@@ -44,7 +45,9 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
   return (
     <>
       <BaseMap>
-        <MapLayers map={map} layers={map?.layers || []} />
+        <DndContext>
+          <MapLayers map={map} layers={map?.layers || []} />
+        </DndContext>
         <MapManager>{children}</MapManager>
         <LayerEditor />
         <MagneticLayer />
