@@ -17,6 +17,8 @@ export default function MapLayers({ layers }: MapLayersProps) {
   const view = useOlStore((state) => state.view)
   const adapter = useMemo(() => new ApiAdapter(), [])
 
+  let geometrySelected = false
+
   const {
     setActiveGeometryID,
     activeGeometryID,
@@ -67,14 +69,16 @@ export default function MapLayers({ layers }: MapLayersProps) {
                 // @ts-expect-error - Same attributes, different types
                 format={parser}
                 onClick={(e) => {
-                  if (editorTool !== 'Select' || !!pendingGeometry) return
+                  if (editorTool !== 'Select' || !!pendingGeometry || geometrySelected)  return
+                  geometrySelected = true
                   setEditorTool('Edit')
                   const geometryID = e.target.get('id_geometry')
                   const geometryLayerID = e.target.get('id_layer')
                   geometryLayerID && setActiveLayer(geometryLayerID)
                   geometryID && setActivePanel('compactLayers')
-                  return geometryID && setActiveGeometryID(geometryID === activeGeometryID ? undefined : geometryID)
-                }}>
+                  return geometryID && setActiveGeometryID(geometryID)
+                }}
+                >
                 <RStyle>
                   <RCircle radius={layer?.style?.radius || 5}>
                     <RFill color={layer?.style?.fill || '#007bff'} />
