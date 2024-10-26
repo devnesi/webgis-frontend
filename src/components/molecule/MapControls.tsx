@@ -92,7 +92,6 @@ export default function MapControls() {
             const newView = new View({
               ...view,
               extent: undefined,
-              maxZoom: 18,
             })
             map.getView().dispose()
             map.setView(newView)
@@ -101,8 +100,7 @@ export default function MapControls() {
             setBBoxLock(transformExtent(currentExtent, 'EPSG:3857', 'EPSG:4326'))
             const newView = new View({
               ...view,
-              extent: currentExtent,
-              maxZoom: 18,
+              extent: currentExtent,        
             })
 
             map.getView().dispose()
