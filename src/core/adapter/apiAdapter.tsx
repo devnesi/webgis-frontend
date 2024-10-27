@@ -1,19 +1,42 @@
 import axios, { AxiosInstance } from 'axios'
-import { GeoJSON } from 'ol/format'
+import getUserToken from '../utils/gettoken'
+import { setCookie, destroyCookie } from 'nookies'
 
 export class ApiAdapter {
   private _client: AxiosInstance
-  private _token: string = process.env.NEXT_PUBLIC_OVERRIDETOKEN || ''
+  private _token: string = ''
   public _baseURL: string = process.env.NEXT_PUBLIC_BASEURL || ''
 
   constructor() {
+    this._token = process.env.NEXT_PUBLIC_OVERRIDETOKEN || getUserToken() || ''
+
     this._client = axios.create({
       baseURL: this._baseURL,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Token ${this._token}`,
+        Authorization: this._token ? `Token ${this._token}` : undefined,
       },
     })
+
+    this._client.interceptors.response.use(
+      (response) => {
+        return response
+      },
+      async (error) => {
+        console.debug(
+          `Error on request
+| response: ${error?.response?.status || '?'}
+| endpoint: ${error?.config?.baseURL}${error?.config?.url}
+| mesage: ${error?.response?.data?.message || '?'}
+`
+        )
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          destroyCookie(null, 'USER_AUTHENTICATION_TOKEN')
+          window.location.replace('/')
+          return Promise.reject(error)
+        }
+      }
+    )
   }
 
   public async getAvailableLayers(map?: number) {
@@ -37,7 +60,11 @@ export class ApiAdapter {
   }
 
   public async getMap(mapId: number) {
-    const result = await this._client.get<API.RAW.Map>(`/maps/${mapId}/`)
+    const result = await this._client.get<API.RAW.Map>(`/maps/${mapId}/`, {
+      headers: {
+        Authorization: null,
+      },
+    })
 
     return result.data
   }
@@ -127,5 +154,53 @@ export class ApiAdapter {
     } catch (e) {
       console.error(e)
     }
+  }
+
+  public async login(username: string, password: string) {
+    const result = await this._client.post<{ token: string }>('/login/', { username, password })
+
+    setCookie(null, 'USER_AUTHENTICATION_TOKEN', result.data.token, {
+      maxAge: 30 * 24 * 60 * 60,
+    })
+
+    return result.data
+  }
+
+  public async register(username: string, password: string) {
+    const result = await this._client.post<{ token: string }>('/register/', { username, password })
+
+    return result.data
+  }
+
+  public async deleteMap(mapID: number) {
+    const result = await this._client.delete(`/maps/${mapID}/`)
+
+    return
+  }
+
+  public async deleteLayer(layerID: number) {
+    const result = await this._client.delete(`/layers/${layerID}/`)
+
+    return result.data
+  }
+
+  public async createLayer(body: {
+    name: string
+    map: number
+    layer_type: API.RAW.Layer_type
+    style: {
+      fill: string
+      stroke: string
+    }
+  }) {
+    const result = await this._client.post<API.RAW.Layer>('/layers/', body)
+
+    return result.data
+  }
+
+  public async createMap(body: { name: string }) {
+    const result = await this._client.post<API.RAW.Map>('/maps/', body)
+
+    return result.data
   }
 }

@@ -15,7 +15,7 @@ type RView = {
 
 namespace API {
   namespace RAW {
-    type Layer_type = 'Point' | 'MultiPolygon' | 'Polygon' | 'LineString' | 'Line'
+    type Layer_type = 'Point' | 'Polygon' | 'LineString'
 
     type Layer = {
       id_layer: number

@@ -53,7 +53,7 @@ export default function GeometryPanel() {
       return exteriorRing.getLength()
     }
 
-    if (activeGeometry?.geom?.type === 'LineString' || activeGeometry?.geom?.type === 'Line') {
+    if (activeGeometry?.geom?.type === 'LineString') {
       return new LineString(activeGeometry?.geom?.coordinates)?.transform('EPSG:4326', 'EPSG:3857')?.getLength()
     }
 

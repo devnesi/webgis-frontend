@@ -76,8 +76,8 @@ export function LayerRow({
               backgroundColor: layer?.style?.fill || 'transparent',
             }}
             className={clsx({
-              'w-4 h-4': layer.layer_type === 'Polygon' || layer.layer_type === 'MultiPolygon',
-              'w-4 h-1': layer.layer_type === 'Line' || layer.layer_type === 'LineString',
+              'w-4 h-4': layer.layer_type === 'Polygon',
+              'w-4 h-1': layer.layer_type === 'LineString',
               'rounded-full w-2 h-2': layer.layer_type === 'Point',
             })}
           />

@@ -1,7 +1,7 @@
 'use client'
 
-import MapControl from '@/components/atom/MapControl'
-import * as Portal from '@radix-ui/react-portal'
+import MapControl from '@/components/controls/MapControl'
+
 import {
   Cursor,
   CursorClick,
@@ -9,12 +9,10 @@ import {
   Hand,
   HandGrabbing,
   LineSegments,
-  Palette,
   Pencil,
   Polygon,
   Swatches,
-  UploadSimple,
-  X,
+  TrashSimple,
 } from '@phosphor-icons/react'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import { useMapStore } from '@/core/store/mapStore'
@@ -24,10 +22,9 @@ import { useOL } from 'rlayers'
 import VectorTileLayer from 'ol/layer/VectorTile'
 import VectorLayer from 'ol/layer/Vector'
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
-import { HexAlphaColorPicker } from 'react-colorful'
-import { set } from 'ol/transform'
 import { usePathname } from 'next/navigation'
-// eslint-disable-next-line react-hooks/rules-of-hooks
+import LayerSettingsModal from '../modal/LayerSettingsModal'
+import ConfirmActionModal from '../modal/ConfirmActionModal'
 
 export default function EditorControls() {
   const {
@@ -39,35 +36,19 @@ export default function EditorControls() {
     pendingGeometry,
     setActiveGeometryID,
     setPendingGeometry,
+    setActiveGeometry,
   } = useInterfaceStore()
 
   const { map } = useOL()
   const { maps, setMaps } = useMapStore()
   const [previousTool, setPreviousTool] = useState<typeof editorTool>(undefined)
   const [showLayerEditor, setShowLayerEditor] = useState(false)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const adapater = useMemo(() => new ApiAdapter(), [])
-  const [activeLayerData, setActiveLayerData] = useState<API.RAW.Layer | undefined>(undefined)
-
-  const [layerEditorFillColor, setLayerEditorFillColor] = useState(
-    activeLayerData ? activeLayerData?.style?.fill || '#0193e6' : '#0193e6'
-  )
-  const [layerEditorStrokeColor, setLayerEditorStrokeColor] = useState(
-    activeLayerData ? activeLayerData?.style?.stroke || '#00f0ff' : '#00f0ff'
-  )
-  const layerEditorNameInput = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (!activeLayer) return
-    const layer = maps[activeMap || 0]?.layers.find((l) => l.id_layer === activeLayer)
-    if (!layer) return
-
-    setLayerEditorFillColor(layer.style?.fill || '#0193e6')
-    setLayerEditorStrokeColor(layer.style?.stroke || '#00f0ff')
-    setActiveLayerData(layer)
-  }, [activeLayer, setActiveLayerData, maps, activeMap, setLayerEditorFillColor, setLayerEditorStrokeColor])
+  const path = usePathname()
 
   const layerType = useMemo(() => {
-    if (!activeLayer) return 'N/a'
+    if (typeof activeLayer !== 'number') return 'N/a'
     const layer = maps[activeMap || 0]?.layers.find((l) => l.id_layer === activeLayer)
     if (!layer) return 'N/a'
     return layer.layer_type
@@ -108,11 +89,19 @@ export default function EditorControls() {
         if (!pendingGeometry) return
 
         if (pendingGeometry.id) {
-          adapater.updateGeometry(pendingGeometry.id, pendingGeometry.geojson).then(clearLayers)
+          adapater.updateGeometry(pendingGeometry.id, pendingGeometry.geojson).then(() => {
+            clearLayers(true)
+            setActiveGeometryID(undefined)
+            setActiveGeometry(undefined)
+          })
         }
 
         if (!pendingGeometry.id && pendingGeometry.layer) {
-          adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(clearLayers)
+          adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(() => {
+            clearLayers(true)
+            setActiveGeometryID(undefined)
+            setActiveGeometry(undefined)
+          })
         }
       }
       switch (e.key) {
@@ -125,9 +114,11 @@ export default function EditorControls() {
         case 'Escape': {
           if (activeGeometry) {
             setActiveGeometryID(undefined)
+            setActiveGeometry(undefined)
           }
           if (pendingGeometry) {
             clearLayers(true)
+            setPendingGeometry(undefined)
           }
           break
         }
@@ -136,29 +127,48 @@ export default function EditorControls() {
           break
         }
         case 'e': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
           setEditorTool('Edit')
           break
         }
         case 'p': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
           if (layerType === 'Polygon') {
             setEditorTool('Pen')
           }
           break
         }
         case 'P': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
           if (layerType === 'Point') {
             setEditorTool('Point')
           }
         }
         case 'l': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
           if (layerType === 'LineString') {
             setEditorTool('Line')
           }
           break
         }
         case 'Delete': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
           if (activeGeometry) {
-            adapater.deleteGeometry(activeGeometry.id_geometry).then(clearLayers)
+            adapater.deleteGeometry(activeGeometry.id_geometry).then(() => {
+              clearLayers(true)
+              setActiveGeometryID(undefined)
+              setActiveGeometry(undefined)
+            })
           }
           break
         }
@@ -200,105 +210,57 @@ export default function EditorControls() {
     }
   }, [editorTool, handleKeyPress, handleKeyUp])
   const route = usePathname()
-  console.log(route)
+  const activeLayerObj = useMemo(() => {
+    const mapLayers = maps[activeMap || 0]?.layers
+    if (typeof activeLayer !== 'number' || !mapLayers) return
+
+    return mapLayers.find((l) => l.id_layer === activeLayer)
+  }, [activeMap, activeLayer, maps])
+
   return (
     <>
       {showLayerEditor && (
-        <Portal.Root className="top-0 left-0 z-[99] fixed flex justify-center items-center bg-black/80 backdrop-blur-sm w-screen h-screen">
-          <div className="flex flex-col gap-4 bg-secondary pb-4 rounded-md w-1/2 h-[60vh] h-full min-h-0">
-            <div className="flex justify-between border-neutral-800 px-4 py-4 pb-2 border-b">
-              <h3 className="px-2 text-lg">{activeLayerData?.name || 'Unknown?'}</h3>
-              <X
-                size={24}
-                className="hover:text-red-400 duration-100 cursor-pointer"
-                onClick={() => {
-                  setShowLayerEditor(false)
-                }}
-              />
-            </div>
-            <div className="flex flex-col gap-4 h-full overflow-y-auto">
-              <div className="relative border-neutral-800 focus-within:border-accent mx-4 px-3 pt-2.5 pb-1.5 border rounded-md focus-within:ring focus-within:ring-accent/30 duration-200 group">
-                <div className="flex justify-between">
-                  <label className="group-focus-within:text-white font-medium text-gray-400 text-muted-foreground text-xs">
-                    Nome
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="name"
-                    name="name"
-                    defaultValue={activeLayerData?.name}
-                    ref={layerEditorNameInput}
-                    className="block border-0 border-white/10 bg-transparent file:my-1 p-0 focus:ring-0 focus:ring-teal-500 w-full text-foreground text-sm placeholder:text-muted-foreground/90 focus:outline-none sm:leading-7"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
-                <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
-                  <Palette /> Cor de preenchimento
-                </h6>
-                <HexAlphaColorPicker
-                  className="!w-full !max-w-none"
-                  color={layerEditorFillColor}
-                  onChange={setLayerEditorFillColor}
-                />
-              </div>
-              <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
-                <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
-                  <Palette /> Cor de borda
-                </h6>
-                <HexAlphaColorPicker
-                  className="!w-full !max-w-none"
-                  color={layerEditorStrokeColor}
-                  onChange={setLayerEditorStrokeColor}
-                />
-              </div>
-              <div
-                className="flex items-center gap-2 bg-primary hover:bg-accent mr-4 ml-auto px-4 py-2 rounded-md duration-100 cursor-pointer"
-                onClick={() => {
-                  if (!activeLayerData) return
+        <LayerSettingsModal
+          onClose={() => {
+            setShowLayerEditor(false)
+          }}
+        />
+      )}
+      {showConfirmDelete && (
+        <ConfirmActionModal
+          onClose={() => {
+            setShowConfirmDelete(false)
+          }}
+          destructive
+          title={`Apagar camada "${activeLayerObj?.name || activeLayer}" ?`}
+          description="Ao confirmar, todos os dados associados a esta camada serão apagados permanentemente. Deseja continuar?"
+          onConfirm={() => {
+            if (typeof activeLayer !== 'number') {
+              return
+            }
 
-                  adapater
-                    .updateLayerSpecification({
-                      ...activeLayerData,
-                      name: layerEditorNameInput.current?.value || activeLayerData.name,
-                      style: {
-                        fill: layerEditorFillColor,
-                        stroke: layerEditorStrokeColor,
-                      },
-                    })
-                    .then(() => {
-                      setShowLayerEditor(false)
-                      setMaps({
-                        ...maps,
-                        [activeMap!]: {
-                          ...maps[activeMap!],
-                          layers: maps[activeMap!].layers.map((l) => {
-                            if (l.id_layer === activeLayer) {
-                              return {
-                                ...l,
-                                name: layerEditorNameInput.current?.value || activeLayerData.name,
-                                style: {
-                                  fill: layerEditorFillColor,
-                                  stroke: layerEditorStrokeColor,
-                                },
-                              }
-                            }
-                            return l
-                          }),
-                        },
-                      })
-                      clearLayers()
-                    })
-                }}>
-                <UploadSimple /> salvar
-              </div>
-            </div>
-          </div>
-        </Portal.Root>
+            setShowConfirmDelete(false)
+            adapater.deleteLayer(activeLayer).then(() => {
+              const currentLayers = maps[activeMap || 0]?.layers
+              if (!currentLayers || !activeMap) return
+
+              const layersWithoutActive = currentLayers.filter((l) => l.id_layer !== activeLayer)
+
+              setMaps({
+                ...maps,
+                [activeMap]: {
+                  ...maps[activeMap],
+                  layers: layersWithoutActive,
+                },
+              })
+              setShowConfirmDelete(false)
+            })
+          }}
+        />
       )}
       <div className="flex flex-col gap-2 mr-auto p-4 w-min pointer-events-none">
         <MapControl
+          side="right"
           Icon={editorTool === 'Move' || editorTool === undefined ? HandGrabbing : Hand}
           label={'Mover'}
           active={editorTool === 'Move' || editorTool === undefined}
@@ -312,6 +274,7 @@ export default function EditorControls() {
           shortcut="_"
         />
         <MapControl
+          side="right"
           Icon={activeGeometry ? CursorClick : Cursor}
           label={'Selecionar'}
           active={editorTool === 'Select'}
@@ -330,20 +293,22 @@ export default function EditorControls() {
             <AnimatePresence>
               {activeLayer && (
                 <MapControl
+                  key="editor.tool.edit"
+                  side="right"
                   Icon={Pencil}
                   label={'Editar'}
                   active={editorTool === 'Edit'}
-                  disabled={!activeLayer}
+                  disabled={!activeGeometry}
                   shortcut="E"
                   onClick={() => {
                     setEditorTool(editorTool === 'Edit' ? undefined : 'Edit')
                   }}
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
                 <motion.hr
+                  key="editor.tool.hr.1"
                   transition={{
                     duration: 0.05,
                     bounce: false,
@@ -364,24 +329,38 @@ export default function EditorControls() {
                   className="border-tertiary"
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
-                <MapControl
-                  Icon={Swatches}
-                  label={'Customizar camada'}
-                  active={showLayerEditor}
-                  disabled={!activeLayer}
-                  shortcut="Shift+C"
-                  onClick={() => {
-                    setShowLayerEditor(!showLayerEditor)
-                  }}
-                />
+                <>
+                  <MapControl
+                    key="editor.tool.layerEditor"
+                    side="right"
+                    Icon={Swatches}
+                    label={'Customizar camada'}
+                    active={showLayerEditor}
+                    disabled={typeof activeLayer !== 'number'}
+                    shortcut="Shift+C"
+                    onClick={() => {
+                      setShowLayerEditor(!showLayerEditor)
+                    }}
+                  />
+                  <MapControl
+                    key="editor.tool.layerDelete"
+                    side="right"
+                    Icon={TrashSimple}
+                    label={'Apagar Camada'}
+                    className="hover:border-white hover:!bg-red-500 border !border-red-400 text-red-400 hover:text-white"
+                    disabled={typeof activeLayer !== 'number'}
+                    onClick={() => {
+                      setShowConfirmDelete(true)
+                    }}
+                  />
+                </>
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
                 <motion.hr
+                  key="editor.tool.divider.2"
                   transition={{
                     duration: 0.05,
                     bounce: false,
@@ -402,10 +381,11 @@ export default function EditorControls() {
                   className="border-tertiary"
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
                 <MapControl
+                  key="editor.tool.dot"
+                  side="right"
                   Icon={Dot}
                   label={'Ponto'}
                   disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Point'}
@@ -421,10 +401,11 @@ export default function EditorControls() {
                   }}
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
                 <MapControl
+                  key="editor.tool.line"
+                  side="right"
                   Icon={LineSegments}
                   label={'Linha'}
                   disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'LineString'}
@@ -440,10 +421,11 @@ export default function EditorControls() {
                   shortcut="L"
                 />
               )}
-            </AnimatePresence>
-            <AnimatePresence>
+
               {activeLayer && (
                 <MapControl
+                  key="editor.tool.polygon"
+                  side="right"
                   Icon={Polygon}
                   label={'Polígono'}
                   disabled={!!pendingGeometry || !!activeGeometry || layerType !== 'Polygon'}
