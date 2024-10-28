@@ -1,7 +1,7 @@
 import MapControls from './MapControls'
 import LayersPanel from './LayersPanel'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import GeometryPanel from './GeometryPanel'
+import DataPanel from './DataPanel'
 import { AnimatePresence } from 'framer-motion'
 import EditorControls from './EditorControls'
 import PendingActionsDisplay from './PendingActionsDisplay'
@@ -19,7 +19,7 @@ export default function MapManager({ children }: { children?: React.ReactNode | 
       <PendingActionsDisplay />
       <MapControls />
       <AnimatePresence presenceAffectsLayout mode="popLayout">
-        {activePanel === 'layers' && <GeometryPanel />}
+        {activePanel === 'layers' && <DataPanel />}
       </AnimatePresence>
     </div>
   )

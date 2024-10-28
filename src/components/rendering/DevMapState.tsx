@@ -32,7 +32,7 @@ export default function DevMapState({ extraData }: IDevMapState) {
   return compactMode ? (
     <div
       className={clsx(
-        'top-4 left-1/2 absolute flex justify-center items-center border-zinc-800 bg-zinc-900 py-2 border rounded-md min-w-[150px] h-4 text-center text-white text-xs -translate-x-1/2 cursor-pointer overflow-hidden pointer-events-auto',
+        'top-0 left-1/2 absolute flex justify-center items-center border-zinc-800 bg-zinc-900 py-2 border rounded-md min-w-[150px] h-4 text-center text-white text-xs -translate-x-1/2 cursor-pointer overflow-hidden pointer-events-auto',
         {
           hidden: process.env.NODE_ENV !== 'development',
         }
@@ -45,7 +45,7 @@ export default function DevMapState({ extraData }: IDevMapState) {
   ) : (
     <div
       className={clsx(
-        'top-4 left-1/2 absolute border-zinc-800 bg-black border rounded-md text-white text-xs -translate-x-1/2 overflow-hidden pointer-events-none',
+        'top-0 left-1/2 absolute border-zinc-800 bg-black border rounded-md text-white text-xs -translate-x-1/2 overflow-hidden pointer-events-none',
         {
           hidden: process.env.NODE_ENV !== 'development',
         }

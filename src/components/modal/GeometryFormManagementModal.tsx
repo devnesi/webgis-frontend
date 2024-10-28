@@ -6,12 +6,11 @@ import { UploadSimple, X } from '@phosphor-icons/react'
 import * as Portal from '@radix-ui/react-portal'
 import { useMemo, useRef } from 'react'
 
-export interface IGeometryFormModalProps {
+export interface IGeometryFormManagementModalProps {
   onClose?: () => void
-  onConfirm: (name: string) => void
 }
 
-export default function GeometryFormModal({ onClose, onConfirm }: IGeometryFormModalProps) {
+export default function GeometryFormManagementModal({ onClose }: IGeometryFormManagementModalProps) {
   const layerNameInput = useRef<HTMLInputElement>(null)
   const adapter = useMemo(() => new ApiAdapter(), [])
   const { activeLayer } = useInterfaceStore()
@@ -42,11 +41,15 @@ export default function GeometryFormModal({ onClose, onConfirm }: IGeometryFormM
         <div
           className="flex items-center gap-2 bg-primary hover:bg-accent mr-4 ml-auto px-4 py-2 rounded-md duration-100 cursor-pointer"
           onClick={() => {
-            if (!layerNameInput.current?.value) {
+            if (!activeLayer) {
               return
             }
 
-            onConfirm?.(layerNameInput.current.value)
+            adapter.createForm({
+              name: layerNameInput.current?.value || 'Unknown',
+              layer: activeLayer,
+            })
+            onClose?.()
           }}>
           <UploadSimple /> Salvar
         </div>

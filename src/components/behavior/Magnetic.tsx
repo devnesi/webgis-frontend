@@ -49,7 +49,6 @@ export default function MagneticLayer() {
 
         const vectorSource = new VectorSource()
         vectorSource.addFeature(featureFromWKT)
-        console.log('ADD INTERACTION USINGN NEW SOURCE')
         map.addInteraction(
           new Snap({
             source: vectorSource,

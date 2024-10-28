@@ -1,15 +1,11 @@
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
 import { MVT } from 'ol/format'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { RFeatureUIEvent, RLayerVectorTile, useOL } from 'rlayers'
+import { useEffect, useMemo } from 'react'
+import { RLayerVectorTile } from 'rlayers'
 import { RCircle, RFill, RStroke, RStyle } from 'rlayers/style'
-import { useOlStore } from '@/core/store/olStore'
-import MagneticLayer from '../behavior/Magnetic'
-import { debounce } from '@/core/utils/debounce'
 import { Feature } from 'ol'
 import { Geometry } from 'ol/geom'
-import VectorLayer from 'ol/layer/Vector'
 import { Layer } from 'ol/layer'
 import { usePathname } from 'next/navigation'
 
@@ -43,11 +39,16 @@ export default function MapLayers({ layers }: MapLayersProps) {
     setActivePanel,
     setEditorTool,
     activePanel,
+    activeMap,
+    activeLayer,
+    setPendingGeometry,
   } = useInterfaceStore()
 
   useEffect(() => {
-    if (!activeGeometryID) {
-      setActiveGeometryID(undefined)
+    setPendingGeometry(undefined)
+
+    if (typeof activeGeometryID !== 'number') {
+      setActiveGeometry(undefined)
       return
     }
 
@@ -67,6 +68,15 @@ export default function MapLayers({ layers }: MapLayersProps) {
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGeometryID])
+
+  useEffect(() => {
+    if (!activeMap) {
+      return
+    }
+
+    setActiveGeometryID(undefined)
+    setPendingGeometry(undefined)
+  }, [activeMap])
 
   return (
     <>

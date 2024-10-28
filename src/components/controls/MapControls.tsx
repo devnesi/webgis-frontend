@@ -7,6 +7,9 @@ import {
   MagnetStraight,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
+  Share,
+  ShareFat,
+  SignOut,
   Stack,
   StackSimple,
 } from '@phosphor-icons/react'
@@ -56,20 +59,26 @@ export default function MapControls() {
           setActivePanel(activePanel === 'layers' ? 'compactLayers' : 'layers')
         }}
       />
-      {/* <MapControl
-        Icon={StackSimple}
-        active={activePanel === 'compactLayers'}
-        label={'Painel simples'}
+      <MapControl
+        Icon={ShareFat}
+        label={'Compartilhar mapa'}
+        disabled={!activeMap || isNaN(activeMap)}
         onClick={() => {
-          setActivePanel(activePanel === 'compactLayers' ? 'compactLayers' : 'compactLayers')
+          const url = `${window.location.origin}/map/${activeMap}`
+          navigator.clipboard.writeText(url)
         }}
-      /> */}
+      />
       <hr className="border-tertiary" />
       <MapControl
         Icon={ArrowsInCardinal}
         label={'Centralizar mapa'}
+        disabled={!activeMap || isNaN(activeMap)}
         onClick={() => {
           adapter.getMapBBox(activeMap!).then((response) => {
+            if (!response.bbox) {
+              return
+            }
+
             const bbox = response.bbox.replace('BOX(', '').replace(')', '')
             const lonLatTuple = bbox.replace(',', ' ')
             const bBox = lonLatTuple.split(' ').map((c) => parseFloat(c))
@@ -78,6 +87,7 @@ export default function MapControls() {
 
             map.getView().fit(LonLat, {
               duration: 300,
+              maxZoom: 18,
             })
           })
         }}
@@ -86,6 +96,7 @@ export default function MapControls() {
         Icon={Lock}
         label={'Limitar movimento'}
         active={!!bBoxLock}
+        disabled={!activeMap || isNaN(activeMap)}
         onClick={() => {
           if (!!bBoxLock) {
             setBBoxLock(undefined)
@@ -111,10 +122,19 @@ export default function MapControls() {
       />
       <MapControl
         Icon={MagnetStraight}
+        disabled={!activeMap || isNaN(activeMap)}
         label={'Encaixe Inteligente'}
         active={!!magneticLock}
         onClick={() => {
           setMagneticLock(!magneticLock)
+        }}
+      />
+      <MapControl
+        className="mt-auto"
+        Icon={SignOut}
+        label={'Desconectar'}
+        onClick={() => {
+          window.location.href = '/signout'
         }}
       />
     </div>

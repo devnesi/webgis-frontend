@@ -6,10 +6,11 @@ export class ApiAdapter {
   private _client: AxiosInstance
   private _token: string = ''
   public _baseURL: string = process.env.NEXT_PUBLIC_BASEURL || ''
+  public hasToken: boolean = false
 
   constructor() {
     this._token = process.env.NEXT_PUBLIC_OVERRIDETOKEN || getUserToken() || ''
-
+    this.hasToken = !!this._token
     this._client = axios.create({
       baseURL: this._baseURL,
       headers: {
@@ -93,7 +94,27 @@ export class ApiAdapter {
     return result.data
   }
 
-  public async updateForm(geometryID: number, formData: API.RAW.BatchFormValues) {
+  public async getLayerForms(layer_id: number) {
+    const result = await this._client.get<API.LAYER.listForms>('/forms/', {
+      params: {
+        layer: layer_id,
+      },
+    })
+
+    return result.data
+  }
+
+  public async getLayerFormFields(form_id: number) {
+    const result = await this._client.get<API.RAW.FormField[]>('/fields/', {
+      params: {
+        form: form_id,
+      },
+    })
+
+    return result.data
+  }
+
+  public async updateFormValues(geometryID: number, formData: API.RAW.BatchFormValues) {
     try {
       const result = await this._client.post(`/geometries/${geometryID}/infos/`, formData)
 
@@ -166,16 +187,14 @@ export class ApiAdapter {
     return result.data
   }
 
-  public async register(username: string, password: string) {
-    const result = await this._client.post<{ token: string }>('/register/', { username, password })
+  public async register(username: string, password: string, email: string) {
+    const result = await this._client.post<{ token: string }>('/register/', { username, password, email })
 
     return result.data
   }
 
   public async deleteMap(mapID: number) {
-    const result = await this._client.delete(`/maps/${mapID}/`)
-
-    return
+    return await this._client.delete(`/maps/${mapID}/`)
   }
 
   public async deleteLayer(layerID: number) {
@@ -200,6 +219,52 @@ export class ApiAdapter {
 
   public async createMap(body: { name: string }) {
     const result = await this._client.post<API.RAW.Map>('/maps/', body)
+
+    return result.data
+  }
+
+  public async createForm(body: { name: string; layer: number }) {
+    const result = await this._client.post<API.RAW.Form>('/forms/', body)
+
+    return result.data
+  }
+
+  public async createFormField(body: { name: string; form: number }) {
+    const result = await this._client.post<API.RAW.FormField>('/fields/', {
+      ...body,
+      type: 'String',
+    })
+
+    return result.data
+  }
+
+  public async deleteField(fieldID: number) {
+    const result = await this._client.delete(`/fields/${fieldID}/`)
+
+    return result.data
+  }
+
+  public async updateField(fieldID: number, body: { formID: number; name: string }) {
+    const result = await this._client.put(`/fields/${fieldID}/`, {
+      form: body.formID,
+      name: body.name || 'Unnamed Field',
+    })
+
+    return result.data
+  }
+
+  public async deleteForm(formID: number) {
+    return await this._client.delete(`/forms/${formID}/`)
+  }
+
+  public async updateFormName(formID: number, body: { name: string; layer: number }) {
+    const result = await this._client.put(`/forms/${formID}/`, body)
+
+    return result.data
+  }
+
+  public async updateMap(mapID: number, body: { name: string }) {
+    const result = await this._client.put(`/maps/${mapID}/`, body)
 
     return result.data
   }

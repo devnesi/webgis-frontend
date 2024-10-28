@@ -41,7 +41,7 @@ export interface InterfaceAction {
 }
 
 export const useInterfaceStore = create<InterfaceStore & InterfaceAction>((set) => ({
-  activePanel: 'compactLayers',
+  activePanel: 'layers',
   activeLayer: undefined,
   activeMap: undefined,
   setActivePanel: (panel?: availablePanels) => set({ activePanel: panel }),

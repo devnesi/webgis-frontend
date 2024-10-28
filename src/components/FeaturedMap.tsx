@@ -34,7 +34,7 @@ export default function FeaturedMap({ children }: { children?: React.ReactNode |
 
       setMaps(newMapList)
       if (!activeMap) {
-        setActiveMap(Number(Object.keys(newMapList)[0]))
+        setActiveMap(parseInt(localStorage.getItem('lastMap') || '0') || Number(Object.keys(newMapList)[0]))
       }
     })()
 

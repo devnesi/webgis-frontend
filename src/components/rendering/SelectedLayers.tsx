@@ -27,7 +27,7 @@ export default function LayerSelector({}: ILayersEditorProps) {
   const modifyRef = useRef(null)
   const isCtrlPressed = useCallback((e: MapBrowserEvent<UIEvent>) => platformModifierKeyOnly(e) && click(e), [])
   const GeometryJsonObject = useMemo(() => {
-    if (!activeGeometry || !activeGeometryID) {
+    if (typeof activeGeometryID !== 'number' || !activeGeometry?.geom) {
       return null
     }
 
@@ -66,7 +66,9 @@ export default function LayerSelector({}: ILayersEditorProps) {
 
       <RInteraction.RDraw
         type={'Polygon'}
-        condition={() => !activeGeometry && !pendingGeometry && (editorTool === 'Lasso' || editorTool === 'Pen')}
+        condition={() =>
+          typeof activeGeometryID !== 'number' && !pendingGeometry && (editorTool === 'Lasso' || editorTool === 'Pen')
+        }
         freehandCondition={() => !pendingGeometry && editorTool === 'Lasso'}
         snapTolerance={8}
         onDrawEnd={(e) => {
@@ -81,7 +83,7 @@ export default function LayerSelector({}: ILayersEditorProps) {
       <RInteraction.RDraw
         type={'Point'}
         snapTolerance={8}
-        condition={() => !activeGeometry && !pendingGeometry && editorTool === 'Point'}
+        condition={() => typeof activeGeometryID !== 'number' && !pendingGeometry && editorTool === 'Point'}
         onDrawEnd={(e) => {
           setEditorTool('Edit')
           const geom = e.feature!.getGeometry()
@@ -94,7 +96,7 @@ export default function LayerSelector({}: ILayersEditorProps) {
       <RInteraction.RDraw
         type={'LineString'}
         snapTolerance={8}
-        condition={() => !activeGeometry && !pendingGeometry && editorTool === 'Line'}
+        condition={() => typeof activeGeometryID !== 'number' && !pendingGeometry && editorTool === 'Line'}
         onDrawEnd={(e) => {
           setEditorTool('Edit')
           const geom = e.feature!.getGeometry()

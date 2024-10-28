@@ -62,8 +62,6 @@ export default function NewMapModal({ onClose, title }: ILayerSettingsModalProps
                   onClose?.()
                 })
                 .catch((e) => {
-                  console.log('erro', e)
-
                   onClose?.()
                 })
             }}>

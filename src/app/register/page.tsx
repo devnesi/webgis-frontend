@@ -64,16 +64,28 @@ export default function RegisterPage() {
                 const username = data.get('username')?.toString()
                 const password = data.get('password')?.toString()
                 const password_confirm = data.get('password_confirm')?.toString()
-                if (!username || !password || !password_confirm) {
+                const email = data.get('email')?.toString()
+
+                if (!username || !password || !password_confirm || !email) {
                   return setError('Preencha os campos corretamente.')
                 }
+
                 if (password !== password_confirm) {
                   return setError('As senhas não coincidem.')
                 }
+
+                if (password.length < 8) {
+                  return setError('A senha deve ter no mínimo 8 caracteres.')
+                }
+
+                if (email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/) === null) {
+                  return setError('Email inválido.')
+                }
+
                 setLoading(true)
 
                 apiAdapter
-                  .register(username, password)
+                  .register(username, password, email)
                   .then(() => {
                     setError(null)
                     router.push('/')
@@ -84,16 +96,29 @@ export default function RegisterPage() {
                     setError(`${e}`)
                   })
               }}>
-              <div>
+              <div className="relative border-white/20 focus-within:border-accent px-3 pt-2.5 pb-1.5 border rounded-md focus-within:ring focus-within:ring-accent/30 duration-200 group">
+                <div className="flex justify-between">
+                  <label className="group-focus-within:text-white font-medium text-gray-400 text-muted-foreground text-xs">
+                    Usuário
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  name="username"
+                  className="block border-0 border-white/10 file:border-0 bg-transparent file:bg-accent file:my-1 file:px-4 file:py-2 p-0 file:rounded-full focus:ring-0 w-full file:font-medium text-sm placeholder:text-white/90 focus:outline-none sm:leading-7"
+                />
+              </div>
+
+              <div className="mt-4">
                 <div className="relative border-white/20 focus-within:border-accent px-3 pt-2.5 pb-1.5 border rounded-md focus-within:ring focus-within:ring-accent/30 duration-200 group">
                   <div className="flex justify-between">
                     <label className="group-focus-within:text-white font-medium text-gray-400 text-muted-foreground text-xs">
-                      Usuário
+                      Email
                     </label>
                   </div>
                   <input
                     type="text"
-                    name="username"
+                    name="email"
                     className="block border-0 border-white/10 file:border-0 bg-transparent file:bg-accent file:my-1 file:px-4 file:py-2 p-0 file:rounded-full focus:ring-0 w-full file:font-medium text-sm placeholder:text-white/90 focus:outline-none sm:leading-7"
                   />
                 </div>

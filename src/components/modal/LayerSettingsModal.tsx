@@ -144,7 +144,7 @@ export default function LayerSettingsModal({ onClose }: ILayerSettingsModalProps
                   clearLayers()
                 })
             }}>
-            <UploadSimple /> salvar
+            <UploadSimple /> Salvar
           </div>
         </div>
       </div>

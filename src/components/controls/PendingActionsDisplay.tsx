@@ -31,43 +31,43 @@ export default function PendingActionsDisplay() {
 
   return route.startsWith('/editor') ? (
     <div className="flex justify-center gap-2 mt-auto p-2 h-min text-sm pointer-events-none grow">
+      {(pendingGeometry || activeGeometry) && (
+        <div
+          className="flex items-center gap-2 bg-black hover:bg-accent px-2 py-1 rounded-md whitespace-nowrap duration-100 cursor-pointer pointer-events-auto"
+          onClick={() => {
+            clearLayers()
+            setActiveGeometryID(undefined)
+            setActiveGeometry(undefined)
+            setPendingGeometry(undefined)
+          }}>
+          <span className="bg-neutral-800 px-1 py-1 rounded text-neutral-400 text-xs">Esc</span>Para cancelar
+        </div>
+      )}
       {pendingGeometry && (
-        <>
-          <div
-            className="flex items-center gap-2 bg-black hover:bg-accent px-2 py-1 rounded-md whitespace-nowrap duration-100 cursor-pointer pointer-events-auto"
-            onClick={() => {
-              clearLayers()
-              setActiveGeometryID(undefined)
-              setActiveGeometry(undefined)
-              setPendingGeometry(undefined)
-            }}>
-            <span className="bg-neutral-800 px-1 py-1 rounded text-neutral-400 text-xs">Esc</span>Para cancelar
-          </div>
-          <div
-            className="flex items-center gap-2 bg-black hover:bg-accent px-2 py-1 rounded-md whitespace-nowrap duration-100 cursor-pointer pointer-events-auto"
-            onClick={() => {
-              if (pendingGeometry.id) {
-                adapater.updateGeometry(pendingGeometry.id, pendingGeometry.geojson).then(() => {
-                  clearLayers()
-                  setActiveGeometryID(undefined)
-                  setActiveGeometry(undefined)
-                  setPendingGeometry(undefined)
-                })
-              }
+        <div
+          className="flex items-center gap-2 bg-black hover:bg-accent px-2 py-1 rounded-md whitespace-nowrap duration-100 cursor-pointer pointer-events-auto"
+          onClick={() => {
+            if (pendingGeometry.id) {
+              adapater.updateGeometry(pendingGeometry.id, pendingGeometry.geojson).then(() => {
+                clearLayers()
+                setActiveGeometryID(undefined)
+                setActiveGeometry(undefined)
+                setPendingGeometry(undefined)
+              })
+            }
 
-              if (!pendingGeometry.id && pendingGeometry.layer) {
-                adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(() => {
-                  clearLayers()
-                  setActiveGeometryID(undefined)
-                  setActiveGeometry(undefined)
-                  setPendingGeometry(undefined)
-                })
-              }
-            }}>
-            <span className="bg-neutral-800 px-1 py-1 rounded min-w-max text-neutral-400 text-xs shr">Ctrl+S</span>
-            Para salvar
-          </div>
-        </>
+            if (!pendingGeometry.id && pendingGeometry.layer) {
+              adapater.createGeometry(pendingGeometry.layer, pendingGeometry.geojson).then(() => {
+                clearLayers()
+                setActiveGeometryID(undefined)
+                setActiveGeometry(undefined)
+                setPendingGeometry(undefined)
+              })
+            }
+          }}>
+          <span className="bg-neutral-800 px-1 py-1 rounded min-w-max text-neutral-400 text-xs shr">Ctrl+S</span>
+          Para salvar
+        </div>
       )}
       {activeGeometry && (
         <div

@@ -68,6 +68,7 @@ namespace API {
 
   export namespace LAYER {
     type list = API.RAW.Layer[]
+    type listForms = (API.RAW.Form & { fields: API.RAW.FormField[] })[]
   }
 
   export namespace MAP {

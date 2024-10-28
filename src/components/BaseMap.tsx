@@ -10,12 +10,11 @@ import { fromLonLat } from 'ol/proj'
 import React, { ReactNode, useEffect, useMemo, useRef } from 'react'
 
 import { RMap, ROSMWebGL } from 'rlayers'
-import { View } from 'ol'
 import RememberUserView from './behavior/RememberUserView'
 
 export default function BaseMap({ children }: { children?: ReactNode }): JSX.Element {
   const { view, setView } = useOlStore()
-  const { activeLayer } = useInterfaceStore()
+  const { activeLayer, setActiveMap } = useInterfaceStore()
   const bBoxLock = useInterfaceStore((state) => state.bBoxLock)
   const map = useRef<RMap | null>(null)
 

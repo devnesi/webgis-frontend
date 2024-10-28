@@ -3,7 +3,7 @@
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { CircleNotch } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -11,6 +11,12 @@ export default function LoginPage() {
   const apiAdapter = useMemo(() => new ApiAdapter(), [])
   const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    if (apiAdapter.hasToken) {
+      router.push('/editor')
+    }
+  }, [router])
 
   return (
     <div className="flex flex-col sm:justify-center items-center bg-primary pt-16 sm:pt-0 min-h-screen text-white">

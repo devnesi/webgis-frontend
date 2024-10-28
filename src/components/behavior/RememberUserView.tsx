@@ -12,7 +12,7 @@ export default function RememberUserView() {
   const wasFiredOnce = useRef(false)
 
   useEffect(() => {
-    if (!map) return
+    if (!map || !activeMap) return
 
     const event = (e: MapEvent) => {
       if (!wasFiredOnce.current) {
@@ -26,6 +26,7 @@ export default function RememberUserView() {
       const currentCenter = view.getCenter()
       localStorage?.setItem('lastViewPos', JSON.stringify(currentCenter))
       localStorage?.setItem('lastViewZoom', (view.getZoom() || 10).toString())
+      localStorage?.setItem('lastMap', (activeMap || '').toString())
     }
 
     map.on('moveend', event)
@@ -33,10 +34,10 @@ export default function RememberUserView() {
     return () => {
       map.un('moveend', event)
     }
-  }, [map])
+  }, [map, activeMap])
 
   useEffect(() => {
-    if (!map) return
+    if (!map || !activeMap) return
 
     const lastViewCenter = localStorage?.getItem('lastViewPos')
     const lastViewZoom = localStorage?.getItem('lastViewZoom') || '10'
@@ -47,12 +48,10 @@ export default function RememberUserView() {
       zoom: parseFloat(lastViewZoom),
     })
 
-    console.log('Setting view to', JSON.parse(lastViewCenter), parseFloat(lastViewZoom))
-    console.log('new View', newView)
     map.getView().dispose()
-    map.setView(newView)
-
-    localStorage?.getItem('lastViewPos')
+    setTimeout(() => {
+      map.setView(newView)
+    }, 0)
   }, [activeMap])
 
   return <></>

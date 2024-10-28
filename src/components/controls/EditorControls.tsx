@@ -3,6 +3,7 @@
 import MapControl from '@/components/controls/MapControl'
 
 import {
+  BezierCurve,
   Cursor,
   CursorClick,
   Dot,
@@ -25,6 +26,7 @@ import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { usePathname } from 'next/navigation'
 import LayerSettingsModal from '../modal/LayerSettingsModal'
 import ConfirmActionModal from '../modal/ConfirmActionModal'
+import { set } from 'ol/transform'
 
 export default function EditorControls() {
   const {
@@ -37,6 +39,8 @@ export default function EditorControls() {
     setActiveGeometryID,
     setPendingGeometry,
     setActiveGeometry,
+    setMagneticLock,
+    magneticLock,
   } = useInterfaceStore()
 
   const { map } = useOL()
@@ -159,6 +163,21 @@ export default function EditorControls() {
           }
           break
         }
+        case 'u': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
+          setMagneticLock(!magneticLock)
+          break
+        }
+        case 'C': {
+          if (!path.startsWith('/editor')) {
+            return
+          }
+
+          setShowLayerEditor(true)
+          break
+        }
         case 'Delete': {
           if (!path.startsWith('/editor')) {
             return
@@ -175,7 +194,7 @@ export default function EditorControls() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editorTool, previousTool, setEditorTool, pendingGeometry, activeGeometry]
+    [editorTool, previousTool, setEditorTool, pendingGeometry, activeGeometry, magneticLock]
   )
 
   const handleKeyUp = useCallback(
@@ -219,14 +238,14 @@ export default function EditorControls() {
 
   return (
     <>
-      {showLayerEditor && (
+      {showLayerEditor && typeof activeLayer === 'number' && (
         <LayerSettingsModal
           onClose={() => {
             setShowLayerEditor(false)
           }}
         />
       )}
-      {showConfirmDelete && (
+      {showConfirmDelete && typeof activeLayer === 'number' && (
         <ConfirmActionModal
           onClose={() => {
             setShowConfirmDelete(false)
@@ -295,8 +314,8 @@ export default function EditorControls() {
                 <MapControl
                   key="editor.tool.edit"
                   side="right"
-                  Icon={Pencil}
-                  label={'Editar'}
+                  Icon={BezierCurve}
+                  label={'Editar ponto'}
                   active={editorTool === 'Edit'}
                   disabled={!activeGeometry}
                   shortcut="E"
