@@ -4,8 +4,8 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
 import { ApiAdapter } from '@/core/adapter/apiAdapter'
 import { useInterfaceStore } from '@/core/store/interfaceStore'
-import { ArrowLineRight, ArrowsDownUp, PlusCircle, Table, Textbox, TrashSimple, X } from '@phosphor-icons/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowsDownUp, PlusCircle, Table, Textbox, TrashSimple } from '@phosphor-icons/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LineString, Polygon } from 'ol/geom'
 import { debounce, DebouncedFunction } from '@/core/utils/debounce'
@@ -15,10 +15,10 @@ import GeometryFormModal from '../modal/GeometryFormModal'
 import GeometryFormManagementModal from '../modal/GeometryFormManagementModal'
 import GeometryFormNewFieldModal from '../modal/GeometryFormNewFieldModal'
 import ConfirmActionModal from '../modal/ConfirmActionModal'
-import { active } from 'sortablejs'
-import { useRect } from '@dnd-kit/core/dist/hooks/utilities'
+import { usePathname } from 'next/navigation'
 
 export default function DataPanel() {
+  const path = usePathname()
   const { activeGeometryID, activeGeometry, setActiveGeometryID, activeLayer, activeMap, setActiveLayer } =
     useInterfaceStore()
   const [isFormListOpen, setFormListOpen] = useState<boolean>(false)
@@ -125,6 +125,7 @@ export default function DataPanel() {
 
   useEffect(() => {
     if (typeof activeGeometryID !== 'number' || forms.length < 1 || pendingFieldToDelete) return
+    setFieldValues({})
     ;(async () => {
       try {
         const fieldValues: {
@@ -138,9 +139,6 @@ export default function DataPanel() {
               ...field,
               debounce: debounce((form: API.RAW.Form, field: API.RAW.FormField) => {
                 setFieldValues((prev) => {
-                  console.log('prev', prev)
-                  console.log('form', form)
-                  console.log('field', field)
                   const formFieldsAndValues = fieldValues[form.id_form]
 
                   if (!activeGeometryID) {
@@ -373,13 +371,15 @@ export default function DataPanel() {
                         </DropdownMenu.Item>
                       )
                     })}
-                    <div
-                      className="flex items-center gap-2 bg-secondary hover:bg-green-400 px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-green-400 text-sm hover:text-primary duration-200 cursor-pointer select-none focus:outline-none"
-                      onClick={() => {
-                        setShowFormCreator(true)
-                      }}>
-                      <PlusCircle weight="duotone" /> Criar novo formulário
-                    </div>
+                    {path.startsWith('/editor') && (
+                      <div
+                        className="flex items-center gap-2 bg-secondary hover:bg-green-400 px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-green-400 text-sm hover:text-primary duration-200 cursor-pointer select-none focus:outline-none"
+                        onClick={() => {
+                          setShowFormCreator(true)
+                        }}>
+                        <PlusCircle weight="duotone" /> Criar novo formulário
+                      </div>
+                    )}
                   </motion.div>
                 </DropdownMenu.Content>
               )}
@@ -391,6 +391,7 @@ export default function DataPanel() {
       {typeof activeGeometryID === 'number' && typeof activeLayer === 'number' && (
         <input
           ref={activeFormInputRef}
+          disabled={!path.startsWith('/editor')}
           className="block focus:border-1 focus:border-accent bg-primary/30 file:my-1 px-2 py-1 p-0 border border-transparent rounded-md focus:ring-0 focus:ring-teal-500 w-full text-foreground text-sm placeholder:text-white/60 sm:leading-7 focus:outline-none"
           defaultValue={activeForm?.name || 'Sem nome'}
           placeholder={'Sem nome'}
@@ -414,25 +415,28 @@ export default function DataPanel() {
                   <input
                     className="block focus:border-1 focus:border-accent bg-primary/30 file:my-1 px-2 py-1 p-0 border border-transparent rounded-md focus:ring-0 focus:ring-teal-500 w-full text-foreground text-sm placeholder:text-white/60 sm:leading-7 focus:outline-none"
                     defaultValue={field.name}
+                    disabled={!path.startsWith('/editor')}
                     placeholder={'Sem valor'}
                     type={'text'}
                     onChange={(e) => {
                       fieldUpdateDebounces(field.id_field, e.target.value)
                     }}
                   />
-                  <button
-                    className="flex justify-center items-center bg-primary/40 hover:bg-red-400 p-2 border border-red-400 rounded text-red-400 hover:text-primary duration-100"
-                    onClick={() => {
-                      setPendingFieldToDelete(field)
-                      setShowConfirmDeleteFieldModal(true)
-                    }}>
-                    <TrashSimple size={16} weight="duotone" />
-                  </button>
+                  {path.startsWith('/editor') && (
+                    <button
+                      className="flex justify-center items-center bg-primary/40 hover:bg-red-400 p-2 border border-red-400 rounded text-red-400 hover:text-primary duration-100"
+                      onClick={() => {
+                        setPendingFieldToDelete(field)
+                        setShowConfirmDeleteFieldModal(true)
+                      }}>
+                      <TrashSimple size={16} weight="duotone" />
+                    </button>
+                  )}
                 </div>
               )
             })}
           </div>
-          {activeForm && (
+          {activeForm && path.startsWith('/editor') && (
             <div className="flex justify-center items-center p-2 w-full">
               <button
                 className="flex items-center gap-2 hover:border-white/20 hover:bg-accent p-2 border border-transparent rounded-md w-full font-semibold text-sm text-white/60 hover:text-primary duration-200"
@@ -457,7 +461,7 @@ export default function DataPanel() {
                     defaultValue={field?.value_string || undefined}
                     placeholder={field?.value_string ?? 'Sem valor'}
                     type={field?.type === 'Number' ? 'number' : 'text'}
-                    disabled={typeof activeGeometryID !== 'number'}
+                    disabled={typeof activeGeometryID !== 'number' || !path.startsWith('/editor')}
                     onChange={(e) => {
                       field.debounce(activeForm, {
                         ...field,
@@ -483,7 +487,7 @@ export default function DataPanel() {
           </div>
         </div>
       )}
-      {activeForm && !activeGeometry && (
+      {activeForm && !activeGeometry && path.startsWith('/editor') && (
         <div
           className={clsx('w-full', {
             'mt-auto': !activeGeometry,

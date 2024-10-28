@@ -305,16 +305,18 @@ export default function LayersPanel() {
                           </DropdownMenu.Item>
                         )
                       })}
-                      <DropdownMenu.Item
-                        className="bg-secondary hover:bg-green-400 px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-sm hover:text-secondary duration-200 cursor-pointer select-none focus:outline-none text-green-400"
-                        key={'map.select.new'}
-                        onClick={() => {
-                          setShowNewMap(true)
-                        }}>
-                        <span className="flex items-center gap-2">
-                          <PlusCircle weight="duotone" /> Novo Mapa
-                        </span>
-                      </DropdownMenu.Item>
+                      {path.startsWith('/editor') && (
+                        <DropdownMenu.Item
+                          className="bg-secondary hover:bg-green-400 px-4 py-2 border border-tertiary first:rounded-t last:rounded-b text-sm hover:text-secondary duration-200 cursor-pointer select-none focus:outline-none text-green-400"
+                          key={'map.select.new'}
+                          onClick={() => {
+                            setShowNewMap(true)
+                          }}>
+                          <span className="flex items-center gap-2">
+                            <PlusCircle weight="duotone" /> Novo Mapa
+                          </span>
+                        </DropdownMenu.Item>
+                      )}
                     </motion.div>
                   </DropdownMenu.Content>
                 )}
@@ -330,6 +332,7 @@ export default function LayersPanel() {
               defaultValue={maps[activeMap || 0]?.name}
               placeholder={'Sem nome'}
               type={'text'}
+              disabled={!path.startsWith('/editor')}
               onChange={(e) => {
                 if (!activeMap || !isNaN(activeMap)) return
                 mapUpdateNameDebounces(e.target.value)
@@ -378,7 +381,7 @@ export default function LayersPanel() {
               )
             })}
           </ReactSortable>
-          {Object.keys(maps).length > 0 && activeMap && !isNaN(activeMap) && (
+          {Object.keys(maps).length > 0 && activeMap && !isNaN(activeMap) && path.startsWith('/editor') && (
             <div
               className={clsx(
                 'flex items-center gap-2 hover:bg-green-400 mt-2 px-4 rounded w-full h-10 text-sm text-white/40 hover:text-black duration-100 cursor-pointer group'
