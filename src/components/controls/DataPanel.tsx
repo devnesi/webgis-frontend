@@ -388,7 +388,7 @@ export default function DataPanel() {
         </DropdownMenu.Root>
       )}
 
-      {typeof activeGeometryID === 'number' && typeof activeLayer === 'number' && (
+      {(typeof activeGeometryID === 'number' || typeof activeLayer === 'number') && (
         <input
           ref={activeFormInputRef}
           disabled={!path.startsWith('/editor')}
