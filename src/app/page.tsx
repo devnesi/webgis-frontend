@@ -53,7 +53,7 @@ export default function LoginPage() {
             <p className="mt-1.5 font-medium text-sm text-white/50">Bem vindo, digite suas credenciais para começar.</p>
             {error && (
               <div className="bg-red-400/10 mt-4 p-2 border border-red-400 rounded w-full text-red-400 text-xs">
-                {error}
+                Erro ao fazer login.
               </div>
             )}
           </div>

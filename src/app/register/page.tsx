@@ -49,7 +49,7 @@ export default function RegisterPage() {
             </p>
             {error && (
               <div className="bg-red-400/10 mt-4 p-2 border border-red-400 rounded w-full text-red-400 text-xs">
-                {error}
+                Erro ao cadastrar
               </div>
             )}
           </div>

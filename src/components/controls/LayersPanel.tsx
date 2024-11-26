@@ -138,7 +138,7 @@ export default function LayersPanel() {
   const [showNewMap, setShowNewMap] = useState<boolean>(false)
   const mapNameRef = useRef<HTMLInputElement>(null)
   const mapUpdateNameDebounces = debounce((name) => {
-    if (!activeMap || !name) return
+    if (typeof activeMap !== 'number' || !name) return
 
     adapater.updateMap(activeMap!, { name }).then(() => {
       setMaps({
@@ -334,7 +334,7 @@ export default function LayersPanel() {
               type={'text'}
               disabled={!path.startsWith('/editor')}
               onChange={(e) => {
-                if (!activeMap || !isNaN(activeMap)) return
+                if (typeof activeMap !== 'number' || isNaN(activeMap)) return
                 mapUpdateNameDebounces(e.target.value)
               }}
             />

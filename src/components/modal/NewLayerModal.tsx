@@ -66,32 +66,36 @@ export default function NewLayerModal({ onClose, title }: ILayerSettingsModalPro
               />
             </div>
           </div>
-          <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
-            <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
-              <Palette /> Cor de preenchimento
-            </h6>
-            <HexAlphaColorPicker className="!w-full !max-w-none" color={layerFillColor} onChange={setLayerFillColor} />
-            <HexColorInput
-              className="border-neutral-500 bg-black/20 p-2 rounded"
-              color={layerFillColor}
-              onChange={setLayerFillColor}
-            />
+          
+          <div className='grid grid-cols-2'>
+            <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
+              <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
+                <Palette /> Cor de preenchimento
+              </h6>
+              <HexAlphaColorPicker className="!w-full !max-w-none !h-42" color={layerFillColor} onChange={setLayerFillColor} />
+              <HexColorInput
+                className="border-neutral-500 bg-black/20 p-2 rounded"
+                color={layerFillColor}
+                onChange={setLayerFillColor}
+              />
+            </div>
+            <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
+              <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
+                <Palette /> Cor de borda
+              </h6>
+              <HexAlphaColorPicker
+                className="!w-full !max-w-none !h-42"
+                color={layerStrokeColor}
+                onChange={setLayerStrokeColor}
+              />
+              <HexColorInput
+                className="border-neutral-500 bg-black/20 p-2 rounded"
+                color={layerStrokeColor}
+                onChange={setLayerStrokeColor}
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
-            <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
-              <Palette /> Cor de borda
-            </h6>
-            <HexAlphaColorPicker
-              className="!w-full !max-w-none"
-              color={layerStrokeColor}
-              onChange={setLayerStrokeColor}
-            />
-            <HexColorInput
-              className="border-neutral-500 bg-black/20 p-2 rounded"
-              color={layerStrokeColor}
-              onChange={setLayerStrokeColor}
-            />
-          </div>
+          
           <div className="flex flex-col gap-2 border-neutral-800 mx-4 p-2 border rounded-md">
             <h6 className="flex items-center gap-1 text-neutral-500 text-sm">
               <Cube /> Tipo de camada

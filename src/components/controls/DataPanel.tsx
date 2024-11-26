@@ -327,7 +327,7 @@ export default function DataPanel() {
         />
       )}
 
-      {(activeGeometryID || activeLayer) && (
+      {(typeof activeGeometryID === 'number' || typeof activeLayer === 'number') && (
         <DropdownMenu.Root open={isFormListOpen} onOpenChange={setFormListOpen}>
           <DropdownMenu.Trigger asChild>
             <div className="flex justify-between items-center border-y bg-secondary p-4 border-tertiary w-full text-sm cursor-pointer select-none">
@@ -388,7 +388,8 @@ export default function DataPanel() {
         </DropdownMenu.Root>
       )}
 
-      {(typeof activeGeometryID === 'number' || typeof activeLayer === 'number') && (
+      {((typeof activeGeometryID === 'number' || typeof activeLayer === 'number') &&
+        activeForm?.id_form) && (
         <input
           ref={activeFormInputRef}
           disabled={!path.startsWith('/editor')}
